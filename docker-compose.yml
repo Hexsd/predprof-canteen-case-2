@@ -1,15 +1,34 @@
+version: '3.8'
+
 services:
-  backend:
-    container_name: django_app
-    build:
-      context: .
-      dockerfile: Dockerfile
-
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: appdb
     volumes:
-      - ./app:/app/app
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-    working_dir: /app/app
-    command: python manage.py runserver 0.0.0.0:8000
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/appdb
+    depends_on:
+      db:
+        condition: service_healthy
 
+  frontend:
+    build: ./frontend
     ports:
-      - "8000:8000"
+      - "8000:80"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

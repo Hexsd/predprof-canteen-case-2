@@ -1,37 +1,17 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import MetaData, Table
+import os
 
-class Base(DeclarativeBase):
-    pass
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@db:5432/appdb")
 
-URL = "postgresql://postgres:12345admin@127.0.0.1:5432/canteen"
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-engine = create_engine(URL)
-Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-metadata = MetaData()
-metadata.reflect(bind=engine)
-
-def Get_Tables():
-    metadata.reflect(bind=engine)
-    return metadata.tables
-
-
-class SessionCloser():
-    def __init__(self):
-        self.db = Session()
-    
-    def __enter__(self):
-        return self.db
-    
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        try:
-            if exc_type is None:
-                self.db.commit()
-            else:
-                self.db.rollback()
-        finally:
-            self.db.close()
-        return False
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
