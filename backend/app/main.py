@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
-from .routes import router
+from .routes import router as users_router
+from .auth_routes import router as auth_router
 import time
 
 for i in range(30):
@@ -21,7 +22,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router, prefix="/api/users")
+app.include_router(auth_router)
+app.include_router(users_router)
 
 @app.get("/")
 def root():
