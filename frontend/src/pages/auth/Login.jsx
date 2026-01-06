@@ -2,43 +2,30 @@ import React, { useState } from 'react'
 import { useAuth } from './AuthContext'
 import { useNavigate, Link } from 'react-router-dom'
 
-export default function Register() {
+export default function Login() {
   const [email, setEmail] = useState('')
-  const [name, setName] = useState('')
   const [password, setPassword] = useState('')
-  const [birth_date, setBirthDate] = useState('')
   const [error, setError] = useState('')
-  const { register } = useAuth()
+  const { login } = useAuth()
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     try {
-      await register(email, name, password, birth_date)
-      navigate('/login')
+      await login(email, password)
+      navigate('/auth/users')
     } catch (err) {
-      setError(err.response?.data?.detail || 'Ошибка при регистрации')
+      setError(err.response?.data?.detail || 'Login failed')
     }
   }
 
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
-      <h2>Регистрация</h2>
+      <h2>Войти</h2>
       {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
       
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '15px' }}>
-          <input
-            type="text"
-            placeholder="Имя"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            style={{ width: '100%', padding: '10px', fontSize: '14px' }}
-          />
-        </div>
-        
         <div style={{ marginBottom: '15px' }}>
           <input
             type="email"
@@ -60,26 +47,11 @@ export default function Register() {
             style={{ width: '100%', padding: '10px', fontSize: '14px' }}
           />
         </div>
-
-        <div style={{ marginBottom: '15px' }}>
-          <input
-            type="date"
-            placeholder="Дата рождения"
-            value={birth_date}
-            onChange={(e) => setBirthDate(e.target.value)}
-            required
-            style={{ width: '100%', padding: '10px', fontSize: '14px' }}
-          />
-        </div>
         
-        <button type="submit" style={{ width: '100%', padding: '10px', fontSize: '16px' }}>
-          Регистрация
-        </button>
+        <button type="submit" style={{ width: '100%', padding: '10px', fontSize: '16px' }}>Войти</button>
       </form>
       
-      <p style={{ marginTop: '20px', textAlign: 'center' }}>
-        Уже есть аккаунт? <Link to="/login">Войти</Link>
-      </p>
+      <p style={{ marginTop: '20px', textAlign: 'center' }}>Нет аккаунта? <Link to="/auth/register">Зарегестрироваться</Link></p>
     </div>
   )
 }
