@@ -15,3 +15,18 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+class context_manager():
+    def __init__(self):
+        self.db = SessionLocal()
+
+    def __enter__(self):
+        return self.db
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type or exc_value or traceback:
+            self.db.rollback()
+        else:
+            self.db.commit()
+        self.db.close()

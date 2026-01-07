@@ -9,3 +9,14 @@ class User(Base):
     name = Column(String)
     hashed_password = Column(String)
     birth_date = Column(Date)
+
+
+class Menu(Base):
+    __tablename__ = "menu"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    date = Column(Date, index=True)
+    breakfast = Column(String)
+    given_breakfasts = Column(Integer, default=0)
+    lunch = Column(String)
+    given_lunches = Column(Integer, default=0)

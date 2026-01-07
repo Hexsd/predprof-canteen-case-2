@@ -22,3 +22,20 @@ class Token(BaseModel):
     token_type: str
 class TokenData(BaseModel):
     email: str | None = None
+
+
+
+class Menu(BaseModel):
+    id: int
+    date: date
+    breakfast: str
+    given_breakfasts: int
+    lunch: str
+    given_lunches: int
+    class Config:
+        from_attributes = True
+
+class MenuCreate(BaseModel):
+    date: date
+    breakfast: str
+    lunch: str
