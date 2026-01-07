@@ -17,7 +17,7 @@ export default function Register() {
     
     try {
       await register(email, name, password, birthDate)
-      navigate('/auth/login')
+      navigate('/')
     } catch (err) {
       setError(err.response?.data?.detail || 'Ошибка при регистрации')
     }
