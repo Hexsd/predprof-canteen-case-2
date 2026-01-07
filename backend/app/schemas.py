@@ -1,10 +1,13 @@
 from pydantic import BaseModel, EmailStr
 from datetime import date
+from .models import UserRole
+from typing import Optional
 class UserCreate(BaseModel):
     email: EmailStr
     name: str
     password: str
     birth_date: date
+    role: Optional[UserRole] = UserRole.student
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
@@ -14,8 +17,11 @@ class User(BaseModel):
     email: EmailStr
     name: str
     birth_date: date
+    role: UserRole
     class Config:
         from_attributes = True
+class UserRoleUpdate(BaseModel):
+    role: UserRole
 
 class Token(BaseModel):
     access_token: str
