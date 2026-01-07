@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Auth_router from './pages/auth/App'
 import UserLayout from './layouts/UserLayout'
 import { AuthProvider } from './pages/auth/AuthContext'
+import Index from './pages/index/Index'
 
 function Router() {
   return (
@@ -11,6 +12,7 @@ function Router() {
           <Route path="/" element={<UserLayout />}>
             <Route path="auth/*" element={<Auth_router />} />
             <Route index element={<Navigate to="auth/login" />} />
+            <Route path="index" element={<Index/>} />
           </Route>
         </Routes>
       </AuthProvider>

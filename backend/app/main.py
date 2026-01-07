@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
-from .routes import router as users_router
-from .auth_routes import router as auth_router
+from .api_routers.user_routes import router as users_router
+from .api_routers.auth_routes import router as auth_router
 import time
 
 for i in range(30):
