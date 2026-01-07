@@ -51,7 +51,7 @@ export default function Login() {
         <button type="submit" style={{ width: '100%', padding: '10px', fontSize: '16px' }}>Войти</button>
       </form>
       
-      <p style={{ marginTop: '20px', textAlign: 'center' }}>Нет аккаунта? <Link to="/auth/register">Зарегестрироваться</Link></p>
+      <p style={{ marginTop: '20px', textAlign: 'center' }}>Нет аккаунта? <Link to="/auth/register">Зарегистрироваться</Link></p>
     </div>
   )
 }

@@ -11,7 +11,7 @@ function Router() {
         <Routes>
           <Route path="/" element={<UserLayout />}>
             <Route path="auth/*" element={<Auth_router />} />
-            <Route index element={<Navigate to="auth/login" />} />
+            <Route index element={<Navigate to="index" />} />
             <Route path="index" element={<Index/>} />
           </Route>
         </Routes>
