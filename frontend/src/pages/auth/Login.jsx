@@ -12,46 +12,56 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    
     try {
       await login(email, password)
-      navigate('/auth/users')
+      navigate('/')
     } catch (err) {
-      setError(err.response?.data?.detail || 'Login failed')
+      setError(err.response?.data?.detail || 'Ошибка входа')
     }
   }
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
-      <h2>Войти</h2>
-      {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
-      
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '15px' }}>
-          <input
-            type="email"
-            placeholder="Почта"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ width: '100%', padding: '10px', fontSize: '14px' }}
-          />
-        </div>
+    <div className="auth-container">
+      <div className="auth-box">
+        <h2 className="auth-title">Вход</h2>
         
-        <div style={{ marginBottom: '15px' }}>
-          <input
-            type="password"
-            placeholder="Пароль"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ width: '100%', padding: '10px', fontSize: '14px' }}
-          />
-        </div>
+        {error && <div className="error-message">{error}</div>}
         
-        <button type="submit" style={{ width: '100%', padding: '10px', fontSize: '16px' }}>Войти</button>
-      </form>
-      
-      <p style={{ marginTop: '20px', textAlign: 'center' }}>Нет аккаунта? <Link to="/auth/register">Зарегистрироваться</Link></p>
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label className="form-label">Почта</label>
+            <input
+              type="email"
+              placeholder="example@mail.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="form-input"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label className="form-label">Пароль</label>
+            <input
+              type="password"
+              placeholder="Введите пароль"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="form-input"
+            />
+          </div>
+          
+          <button type="submit" className="form-button">
+            Войти
+          </button>
+        </form>
+        
+        <p className="auth-link">
+          Нет аккаунта? <Link to="/auth/register">Зарегистрироваться</Link>
+        </p>
+      </div>
     </div>
   )
 }

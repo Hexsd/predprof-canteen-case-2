@@ -9,6 +9,7 @@ export default function UserList() {
   const fetchUsers = async () => {
     setLoading(true)
     setError('')
+    
     try {
       const token = axios.defaults.headers.common['Authorization']
       if (!token) {
@@ -19,7 +20,7 @@ export default function UserList() {
       setUsers(res.data)
     } catch (error) {
       console.error('Error fetching users:', error)
-      setError(error.response?.data?.detail || 'Failed to load users')
+      setError(error.response?.data?.detail || 'Ошибка загрузки пользователей')
     } finally {
       setLoading(false)
     }
@@ -33,29 +34,37 @@ export default function UserList() {
     return () => clearTimeout(timer)
   }, [])
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('ru-RU', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric'
+    })
+  }
+
   if (loading) {
-    return <div style={{ padding: '20px' }}>Загрузка пользователей...</div>
+    return <div className="loading">Загрузка пользователей...</div>
   }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Все пользователи столовой</h2>
-      {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
+    <div>
+      <h2 className="page-title">Все пользователи</h2>
+      
+      {error && <div className="error-message">{error}</div>}
       
       {users.length === 0 ? (
         <p>Пользователи не найдены</p>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
+        <div className="user-list">
           {users.map((user) => (
-            <li key={user.id} style={{ 
-              padding: '10px', 
-              margin: '5px 0', 
-              background: '#f0f0f0'
-            }}>
-              <strong>{user.name}</strong> - {user.email} - {user.birth_date}
-            </li>
+            <div key={user.id} className="user-card">
+              <div className="user-name">{user.name}</div>
+              <div className="user-email">{user.email}</div>
+              <div className="user-date">{formatDate(user.birth_date)}</div>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   )

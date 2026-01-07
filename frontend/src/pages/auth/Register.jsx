@@ -6,7 +6,7 @@ export default function Register() {
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
-  const [birth_date, setBirthDate] = useState('')
+  const [birthDate, setBirthDate] = useState('')
   const [error, setError] = useState('')
   const { register } = useAuth()
   const navigate = useNavigate()
@@ -14,8 +14,9 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    
     try {
-      await register(email, name, password, birth_date)
+      await register(email, name, password, birthDate || null)
       navigate('/auth/login')
     } catch (err) {
       setError(err.response?.data?.detail || 'Ошибка при регистрации')
@@ -23,63 +24,69 @@ export default function Register() {
   }
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
-      <h2>Регистрация</h2>
-      {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
-      
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '15px' }}>
-          <input
-            type="text"
-            placeholder="Имя"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            style={{ width: '100%', padding: '10px', fontSize: '14px' }}
-          />
-        </div>
+    <div className="auth-container">
+      <div className="auth-box">
+        <h2 className="auth-title">Регистрация</h2>
         
-        <div style={{ marginBottom: '15px' }}>
-          <input
-            type="email"
-            placeholder="Почта"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ width: '100%', padding: '10px', fontSize: '14px' }}
-          />
-        </div>
+        {error && <div className="error-message">{error}</div>}
         
-        <div style={{ marginBottom: '15px' }}>
-          <input
-            type="password"
-            placeholder="Пароль"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ width: '100%', padding: '10px', fontSize: '14px' }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '15px' }}>
-          <input
-            type="date"
-            placeholder="Дата рождения"
-            value={birth_date}
-            onChange={(e) => setBirthDate(e.target.value)}
-            required
-            style={{ width: '100%', padding: '10px', fontSize: '14px' }}
-          />
-        </div>
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label className="form-label">Имя</label>
+            <input
+              type="text"
+              placeholder="Иван Иванов"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="form-input"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input
+              type="email"
+              placeholder="example@mail.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="form-input"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label className="form-label">Пароль</label>
+            <input
+              type="password"
+              placeholder="qwerty123"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="form-input"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label className="form-label">Дата рождения</label>
+            <input
+              type="date"
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
+              required
+              className="form-input"
+            />
+          </div>
+          
+          <button type="submit" className="form-button">
+            Зарегистрироваться
+          </button>
+        </form>
         
-        <button type="submit" style={{ width: '100%', padding: '10px', fontSize: '16px' }}>
-          Регистрация
-        </button>
-      </form>
-      
-      <p style={{ marginTop: '20px', textAlign: 'center' }}>
-        Уже есть аккаунт? <Link to="/auth/login">Войти</Link>
-      </p>
+        <p className="auth-link">
+          Уже есть аккаунт? <Link to="/auth/login">Войти</Link>
+        </p>
+      </div>
     </div>
   )
 }

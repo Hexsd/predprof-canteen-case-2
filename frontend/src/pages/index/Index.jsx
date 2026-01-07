@@ -1,7 +1,7 @@
-import React, { createContext, useState, useContext, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 
-function Index() {
+export default function Index() {
   const [menu, setMenu] = useState(null)
 
   const fetchMenu = async () => {
@@ -12,33 +12,38 @@ function Index() {
       console.error('Error fetching menu:', error)
     }
   }
+
   useEffect(() => {
     fetchMenu()
   }, [])
+
   if (!menu) {
-    return <div style={{ padding: '20px' }}>Вы не вошли и не имеете доступа к некоторым функциям</div>
+    return <div className="loading">Загрузка меню...</div>
   }
+
   return (
     <div>
-      <div>
-        <h1>Добро пожаловать на главную страницу сайта столовой!</h1>
-        <h2>Меню на сегодня:</h2>
-      </div>
-      <p>Завтрак</p>
-      <div>
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {menu.breakfast.split('#').map((item) => (<li key={item}>{item}</li>))}
-        </ul>
-      </div>
-      <p>Обед</p>
-      <div>
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {menu.lunch.split('#').map((item) => (<li key={item}>{item}</li>))}
-        </ul>
+      <h2 className="page-title">Меню столовой</h2>
+      
+      <div className="menu-container">
+        <div className="menu-section">
+          <h3>Завтрак</h3>
+          <ul className="menu-list">
+            {menu.breakfast.split('#').map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="menu-section">
+          <h3>Обед</h3>
+          <ul className="menu-list">
+            {menu.lunch.split('#').map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
-    
   )
 }
-
-export default Index

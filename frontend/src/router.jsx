@@ -1,19 +1,23 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import Auth_router from './pages/auth/App'
-import UserLayout from './layouts/UserLayout'
 import { AuthProvider } from './pages/auth/AuthContext'
+import UserLayout from './layouts/UserLayout'
+import Login from './pages/auth/Login'
+import Register from './pages/auth/Register'
 import Index from './pages/index/Index'
+import UserList from './pages/auth/UserList'
 
 function Router() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<UserLayout />}>
-            <Route path="auth/*" element={<Auth_router />} />
-            <Route index element={<Navigate to="index" />} />
-            <Route path="index" element={<Index/>} />
+          <Route path="/auth/login" element={<Login />} />
+          <Route path="/auth/register" element={<Register />} />
+          <Route element={<UserLayout />}>
+            <Route path="/" element={<Index />} />
+            <Route path="/users" element={<UserList />} />
           </Route>
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
