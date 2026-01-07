@@ -96,6 +96,7 @@ export default function UserList() {
               <div className="user-date">{formatDate(user.birth_date)}</div>
               {isAdmin && user.id !== currentUser.id && (
                 <select
+                  className="role-select"
                   value={user.role}
                   onChange={(e) => handleRoleChange(user.id, e.target.value)}
                 >

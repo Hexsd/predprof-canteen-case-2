@@ -239,6 +239,12 @@ a {
   margin-bottom: 8px;
 }
 
+.user-role {
+  font-size: 14px;
+  color: var(--primary-color);
+  margin-bottom: 10px;
+}
+
 .user-email {
   font-size: 14px;
   color: #666;
@@ -248,6 +254,13 @@ a {
 .user-date {
   font-size: 14px;
   color: #999;
+}
+
+.role-select {
+  padding: 8px;
+  font-size: 14px;
+  border: 3px solid var(--primary-color);
+  border-radius: 3px;
 }
 
 .loading {
