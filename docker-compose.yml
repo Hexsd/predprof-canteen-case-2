@@ -26,12 +26,9 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "80:80"
+      - "8000:80"
     depends_on:
       - backend
 
 volumes:
   db_data:
-  backend:
-    ports:
-      - "3000:8000"
