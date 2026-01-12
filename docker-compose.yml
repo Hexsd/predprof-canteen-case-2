@@ -32,3 +32,6 @@ services:
 
 volumes:
   db_data:
+  backend:
+    ports:
+      - "3000:8000"
