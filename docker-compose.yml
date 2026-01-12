@@ -26,14 +26,14 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "80:80"
+      - "8000:80"
     depends_on:
       - backend
 
   proxy:
     image: nginx:latest
     ports:
-      - "80:80"
+      - "8000:80"
     volumes:
       - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
