@@ -5,19 +5,24 @@ import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
 import Index from './pages/index/Index'
 import UserList from './pages/auth/UserList'
+import PersonalPage from './pages/auth/PersonalPage'
+
 
 function Router() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+        
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/register" element={<Register />} />
           <Route element={<UserLayout />}>
             <Route path="/" element={<Index />} />
             <Route path="/users" element={<UserList />} />
+            <Route path="/personal" element={<PersonalPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" />} />
+          
         </Routes>
       </AuthProvider>
     </BrowserRouter>

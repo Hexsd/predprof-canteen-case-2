@@ -45,3 +45,7 @@ class MenuCreate(BaseModel):
     date: date
     breakfast: str
     lunch: str
+    
+class UserPersonalPage(BaseModel):
+    email: EmailStr
+    name: str
