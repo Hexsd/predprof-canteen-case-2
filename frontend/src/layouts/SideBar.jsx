@@ -7,6 +7,7 @@ export default function SideBar() {
   const { user: currentUser } = useAuth()
   const isActive = (path) => location.pathname === path ? 'active' : ''
   const isAdmin = currentUser?.role === 'admin'
+  const isCook = currentUser?.role === 'cook'
   return (
     <aside className="sidebar">
       <h2>Навигация</h2>
@@ -25,6 +26,16 @@ export default function SideBar() {
             <li>
               <Link to="/" className={isActive('/')}>Статистика</Link>
             </li>
+          )}
+          {isCook && (
+            <div>
+              <li>
+                <Link to="/cook/products" className={isActive('/cook/products')}>Контроль продуктов</Link>
+              </li>
+              <li>
+                <Link to="/cook/menu" className={isActive('/cook/menu')}>Управление меню</Link>
+              </li>
+            </div>
           )}
         </ul>
       </nav>

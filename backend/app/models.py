@@ -7,6 +7,10 @@ class UserRole(str, enum.Enum):
     cook="cook"
     admin="admin"
 
+class ProductType(str, enum.Enum):
+    meal="meal"
+    product="product"
+
 class User(Base):
     __tablename__ = "users"
     
@@ -27,3 +31,13 @@ class Menu(Base):
     given_breakfasts = Column(Integer, default=0)
     lunch = Column(String)
     given_lunches = Column(Integer, default=0)
+
+
+class Product(Base):
+    __tablename__ = "products"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True)
+    type = Column(Enum(ProductType), default=ProductType.product)
+    amount = Column(Integer, default=1)
+

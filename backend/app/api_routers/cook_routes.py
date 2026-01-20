@@ -3,18 +3,16 @@ from sqlalchemy.orm import Session
 from typing import List
 from .. import models, schemas, auth
 from ..database import get_db
-from datetime import *
 
+router = APIRouter(prefix="/api/cook", tags=["cook"])
 
-router = APIRouter(prefix="/api/index", tags=["index"])
-
-@router.get("", response_model=schemas.MenuCreate)
+@router.get("/products", response_model=List[schemas.Product])
 def get_index(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    today = date.today()
-    menu = db.query(models.Menu).filter(models.Menu.date == today).first()
-    if not menu:
+    products = db.query(models.Product).all()
+    print(products)
+    if not products:
         return
-    return menu
+    return products
