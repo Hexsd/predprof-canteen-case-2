@@ -9,6 +9,7 @@ import CookRouter from './pages/cook/Router'
 import CheckCook from './pages/cook/Check'
 import Menu from './pages/cook/Menu'
 import Products from './pages/cook/Products'
+import PersonalPage from './pages/auth/PersonalPage'
 
 
 function Router() {
@@ -16,6 +17,7 @@ function Router() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+        
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/register" element={<Register />} />
           <Route element={<UserLayout />}>
@@ -25,8 +27,10 @@ function Router() {
                             <Route path="/cook/products" element={<Products/>}/>
                             <Route path="/cook/menu" element={<Menu/>}/>
                         </Route> 
+            <Route path="/personal" element={<PersonalPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" />} />
+          
         </Routes>
       </AuthProvider>
     </BrowserRouter>

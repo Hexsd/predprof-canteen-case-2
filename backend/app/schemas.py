@@ -56,3 +56,7 @@ class ProductCreate(BaseModel):
     name: str
     type: Optional[ProductType] = ProductType.product
     amount: int
+    
+class UserPersonalPage(BaseModel):
+    email: EmailStr
+    name: str
