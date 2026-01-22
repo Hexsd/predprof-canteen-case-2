@@ -6,9 +6,6 @@ import Register from './pages/auth/Register'
 import Index from './pages/index/Index'
 import UserList from './pages/auth/UserList'
 import CookRouter from './pages/cook/Router'
-import CheckCook from './pages/cook/Check'
-import Menu from './pages/cook/Menu'
-import Products from './pages/cook/Products'
 import PersonalPage from './pages/auth/PersonalPage'
 
 
@@ -17,20 +14,15 @@ function Router() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-        
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/register" element={<Register />} />
           <Route element={<UserLayout />}>
             <Route path="/" element={<Index />} />
             <Route path="/users" element={<UserList />} />
-            <Route element={<CheckCook/>}>
-                            <Route path="/cook/products" element={<Products/>}/>
-                            <Route path="/cook/menu" element={<Menu/>}/>
-                        </Route> 
+            <Route path="/cook/*" element={<CookRouter/>}/>
             <Route path="/personal" element={<PersonalPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" />} />
-          
         </Routes>
       </AuthProvider>
     </BrowserRouter>

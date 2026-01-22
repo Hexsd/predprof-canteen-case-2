@@ -27,7 +27,7 @@ export default function Products() {
                 {/* <li>{products[0].name}</li> */}
                     {products.map((item, index) => (
                     // alert(item.name)
-                    <li key={index}>{item}</li>
+                    <li key={index}>{item.name}</li>
                     ))}
             </ul>
             
