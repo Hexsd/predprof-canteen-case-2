@@ -16,16 +16,15 @@ export default function SideBar() {
           <li>
             <Link to="/" className={isActive('/')}>Главная</Link>
           </li>
-          <li>
-            <Link to="/users" className={isActive('/users')}>Пользователи</Link>
-          </li>
-          <li>
-            <Link to="/personal" className={isActive('/personal')}>Профиль</Link>
-          </li>
           {isAdmin && (
-            <li>
-              <Link to="/" className={isActive('/')}>Статистика</Link>
-            </li>
+            <div>
+              <li>
+                <Link to="/admin/stats" className={isActive('/admin/stats')}>Статистика</Link>
+              </li>
+              <li>
+                <Link to="/admin/users" className={isActive('/admin/users')}>Пользователи</Link>
+              </li>
+            </div>
           )}
           {isCook && (
             <div>

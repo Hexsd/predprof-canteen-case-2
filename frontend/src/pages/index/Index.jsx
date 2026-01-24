@@ -24,7 +24,6 @@ export default function Index() {
   return (
     <div>
       <h2 className="page-title">Меню столовой</h2>
-      <p>seregakrasava</p>
       <div className="menu-container">
         <div className="menu-section">
           <h3>Завтрак</h3>

@@ -4,8 +4,8 @@ import UserLayout from './layouts/UserLayout'
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
 import Index from './pages/index/Index'
-import UserList from './pages/auth/UserList'
 import CookRouter from './pages/cook/Router'
+import AdminRouter from './pages/admin/Router'
 import PersonalPage from './pages/auth/PersonalPage'
 
 
@@ -18,8 +18,8 @@ function Router() {
           <Route path="/auth/register" element={<Register />} />
           <Route element={<UserLayout />}>
             <Route path="/" element={<Index />} />
-            <Route path="/users" element={<UserList />} />
             <Route path="/cook/*" element={<CookRouter/>}/>
+            <Route path="/admin/*" element={<AdminRouter/>}/>
             <Route path="/personal" element={<PersonalPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" />} />
