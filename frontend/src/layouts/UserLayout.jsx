@@ -21,7 +21,7 @@ export default function UserLayout() {
       
       <div className="main-content">
         <header className="header">
-          <h1>Столовая школы №1150</h1>
+          <h1>Система управления школьной столовой</h1>
           
           <div className="user-info">
             <Link to="/personal" className="user-greeting">
