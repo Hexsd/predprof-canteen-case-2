@@ -3,10 +3,9 @@ import axios from 'axios';
 
 export default function Stats() {
     const [stats, setStats] = useState({
-        totalUsers: 0,
-        totalOrders: 0,
+        totalPayments: 0,
         totalRevenue: 0,
-        averageOrderValue: 0,
+        attendance: 0,
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -31,27 +30,22 @@ export default function Stats() {
 
     return (
         <div className="stats-container">
-            <h1>Admin Dashboard</h1>
+            <h1>Панель администратора</h1>
             
             <div className="stats-grid">
                 <div className="stat-card">
-                    <h3>Total Users</h3>
-                    <p className="stat-value">{stats.totalUsers}</p>
+                    <h3>Всего оплат</h3>
+                    <p className="stat-value">{stats.totalPayments}</p>
                 </div>
                 
                 <div className="stat-card">
-                    <h3>Total Orders</h3>
-                    <p className="stat-value">{stats.totalOrders}</p>
+                    <h3>Общий доход</h3>
+                    <p className="stat-value">{stats.totalRevenue}</p>
                 </div>
                 
                 <div className="stat-card">
-                    <h3>Total Revenue</h3>
-                    <p className="stat-value">${stats.totalRevenue}</p>
-                </div>
-                
-                <div className="stat-card">
-                    <h3>Average Order Value</h3>
-                    <p className="stat-value">${stats.averageOrderValue}</p>
+                    <h3>Посещаемость</h3>
+                    <p className="stat-value">{stats.attendance}</p>
                 </div>
             </div>
         </div>

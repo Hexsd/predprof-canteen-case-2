@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from .. import models, auth
 from ..database import get_db
 
@@ -13,12 +14,15 @@ def get_stats(
     """
     Get admin statistics
     """
-    total_users = db.query(models.User).count()
+    total_payments = db.query(models.Payment).count()
+    
+    total_revenue = db.query(func.sum(models.Payment.amount)).scalar() or 0
+    
+    attendance = db.query(func.count(func.distinct(models.Payment.user_id))).scalar() or 0
     
     # Return stats
     return {
-        "totalUsers": total_users,
-        "totalOrders": 0,
-        "totalRevenue": 0,
-        "averageOrderValue": 0
+        "totalPayments": total_payments,
+        "totalRevenue": total_revenue,
+        "attendance": attendance
     }

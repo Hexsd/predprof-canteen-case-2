@@ -48,6 +48,12 @@ export default function UserLayout() {
         <div className="user-email">{user.email}</div>
         <h3>Дата рождения</h3>
         <div className="user-date">{formatDate(user.birth_date)}</div>
+        {user.role === 'student' && (
+          <>
+            <h3>Баланс кошелька</h3>
+            <div className="user-balance">{user.balance} ₽</div>
+          </>
+        )}
       </div>
     </div>
   )
