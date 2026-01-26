@@ -2,34 +2,78 @@ import React, { useState, useEffect, use } from 'react'
 import axios from 'axios'
 
 export default function Products() {
+    const [dishes, setDishes] = useState([]);
     const [products, setProducts] = useState([]);
 
-    const fetchProducts = async () => {
+    const fetchAll = async () => {
         try {
-          const response = await axios.get('/api/cook/products');
-          setProducts(response.data);
+          const response = await axios.get('/api/cook/all');
+          setDishes(response.data[0]);
+          setProducts(response.data[1]);
         } catch (error) {
-          console.error('Error fetching menu:', error);
+          console.error('Error fetching products and dishes:', error);
         }
     }
     useEffect(() =>
     {
-        fetchProducts();
+        fetchAll();
     },[])
-
-    if (!products[0]) {
+    function Join(dish) {
+        const product_names = [];
+        dish.forEach(element => {
+            for (let product in products)
+            {
+                if (parseInt(element)===product.id)
+                {
+                    console.log("sovpadenie");
+                    product_names.push(product.name);
+                    break;
+                }
+            }
+        });
+        return product_names
+    }
+    if (!dishes[0]) {
         return <div className="loading">Загрузка продуктов...</div>
     }
     return ( 
+
         <div>
-            <ul>
-                {/* <li>{products}</li> */}
-                {/* <li>{products[0].name}</li> */}
-                    {products.map((item, index) => (
-                    // alert(item.name)
-                    <li key={index}>{item.name}</li>
+            <table>
+                <tr>
+                    <th>Тип</th>
+                    <th>Название</th>
+                    <th>Компоненты</th>
+                    <th>Количество</th>
+                </tr>
+                {dishes.map((item, index) => (
+                    <tr>
+                        <th>Блюдо</th>
+                        <th>{item.name}</th>
+                        <th>
+                            {Join(item.products.split('#')).map((product, index) => (
+                                <p>{product}</p>
+                            ))}
+                        </th>
+                        <th>{item.amount}</th>
+                    </tr>
+                    
                     ))}
-            </ul>
+                {/* {products.map((item, index) => (
+                    // alert(item.name)
+                    <tr>
+                        <th>Продукт</th>
+                        <th>{item.name}</th>
+                        <th>
+                            {item.products.split('#').map((product, index) => (
+                                    <p>{parseInt(product)}</p>
+                            ))}
+                        </th>
+                        <th>{item.amount}</th>
+                    </tr>
+                    ))} */}
+            </table>
+                   
             
 
         </div>

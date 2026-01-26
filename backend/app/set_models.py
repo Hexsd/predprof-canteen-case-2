@@ -1,15 +1,23 @@
 from .database import engine, Base, context_manager
-from .models import Menu, User, UserRole, Product, ProductType
+from .models import Menu, User, UserRole, Dish, Product
 from datetime import date
 from .auth import hash_password
 
 done = False
 with context_manager() as db:
     new_menu = Menu(date=date.today(), breakfast="Блинчики#Чай", lunch="Макароны с котлетой#Суп#Салат греческий#Компот")
-    some_product = Product(name="макароны по-флотски", type=ProductType.meal, amount=3)
+    set_dishes = [Dish(name="Макароны по-флотски", products="1#2", amount=3), Dish(name="Компот из сухофруктов", products="2", amount=4)]
+    set_products = [Product(name="Мясо", alergens="3", amount=4), Product(name="Макароны рожки", alergens="", amount=2)]
+    
     db.add(new_menu)
-    if not db.query(Product).filter(Product.name == some_product.name).first():
-        db.add(some_product)
+    for dish in set_dishes:
+        if not db.query(Dish).filter(Dish.name == dish.name).first():
+            db.add(dish)
+
+    for product in set_products:
+        if not db.query(Product).filter(Product.name == product.name).first():
+            db.add(product)
+
     admin_user= User(
         email="admin@example.com",
         name="Администратор",
