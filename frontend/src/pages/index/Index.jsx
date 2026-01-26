@@ -85,7 +85,7 @@ export default function Index() {
   }
 
   if (!menu) {
-    return <div className="loading">Загрузка меню...</div>
+    return <div className="loading">Меню на сегодня не найдено.</div>
   }
 
   return (
