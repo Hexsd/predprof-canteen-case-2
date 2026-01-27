@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from datetime import date
 from .models import UserRole
-from typing import Optional
+from typing import Optional, List
 class UserCreate(BaseModel):
     email: EmailStr
     name: str
@@ -78,3 +78,9 @@ class AlergenCreate(BaseModel):
 class UserPersonalPage(BaseModel):
     email: EmailStr
     name: str
+
+
+class ChangeCook(BaseModel):
+    dishes: List[Dish]
+    products: List[Product]
+    alergens: List[Alergen]
