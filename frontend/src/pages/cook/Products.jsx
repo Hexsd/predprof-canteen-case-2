@@ -21,15 +21,15 @@ export default function Products() {
     function Join(dish) {
         const product_names = [];
         dish.forEach(element => {
-            for (let product in products)
-            {
-                if (parseInt(element)===product.id)
+            console.log(element);
+            products.forEach(product => {
+                if (parseInt(element)==product.id)
                 {
-                    console.log("sovpadenie");
-                    product_names.push(product.name);
-                    break;
+                    console.log("sovpadenye")
+                    product_names.push(product.name)
+                    return;
                 }
-            }
+            })
         });
         return product_names
     }
