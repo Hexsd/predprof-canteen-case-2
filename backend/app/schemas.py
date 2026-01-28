@@ -44,7 +44,9 @@ class Menu(BaseModel):
 class MenuCreate(BaseModel):
     date: date
     breakfast: str
+    given_breakfasts: int
     lunch: str
+    given_lunches: int
 
 class Dish(BaseModel):
     id: int

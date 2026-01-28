@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from sqlalchemy import update
 from typing import List, Tuple
 from .. import models, schemas, auth
 from ..database import get_db
+from datetime import datetime
 
 router = APIRouter(prefix="/api/cook", tags=["cook"])
 
@@ -68,7 +69,21 @@ def new_position(
     return
 
 
-
+@router.get("/menu_{date}", response_model = schemas.Menu)
+def menu(
+    date: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):  
+    date = datetime.strptime(date, "%Y-%m-%d").date()
+    menu = db.query(models.Menu).filter(models.Menu.date == date).first()
+    if not menu:
+        raise HTTPException(
+            status_code=404,
+            detail="Item not found"
+        )
+    print(date)
+    return menu
 
 @router.post("/new_menu")
 def new_menu(
@@ -81,3 +96,4 @@ def new_menu(
     else:
         db.add(models.Menu(date=menu.date, breakfast=menu.breakfast, given_breakfasts=0, lunch=menu.lunch, given_lunches=0))
     db.commit()
+    return
