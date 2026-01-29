@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useAuth } from '../auth/AuthContext'
+import { useNotification } from '../../hooks/useNotification'
 
 function getMondayOfWeek(date) {
   const d = new Date(date);
@@ -11,12 +12,11 @@ function getMondayOfWeek(date) {
 
 export default function Index() {
   const [menu, setMenu] = useState(null)
-  const [message, setMessage] = useState('')
-  const [messageType, setMessageType] = useState('')
   const today = new Date()
   const [selectedDate, setSelectedDate] = useState(today)
   const [weekStart, setWeekStart] = useState(getMondayOfWeek(today))
   const { user } = useAuth()
+  const { notify } = useNotification()
 
   const BREAKFAST_PRICE = 150
   const LUNCH_PRICE = 300
@@ -93,60 +93,44 @@ export default function Index() {
   const handleBuyBreakfast = async () => {
     if (!user) return
     if (user.role !== 'student') {
-      setMessageType('error')
-      setMessage('Только ученики могут покупать завтрак')
-      setTimeout(() => setMessage(''), 3000)
+      notify('Только ученики могут покупать завтрак', 'error')
       return
     }
     
     if (user.balance < BREAKFAST_PRICE) {
-      setMessageType('error')
-      setMessage(`Недостаточно средств. Необходимо ${BREAKFAST_PRICE} ₽, у вас ${user.balance} ₽`)
-      setTimeout(() => setMessage(''), 3000)
+      notify(`Недостаточно средств. Необходимо ${BREAKFAST_PRICE} ₽, у вас ${user.balance} ₽`, 'error')
       return
     }
 
     try {
       const response = await axios.post('/api/users/buy/breakfast')
-      setMessageType('success')
-      setMessage(`Завтрак куплен! Баланс: ${response.data.balance} ₽`)
+      notify(`Завтрак куплен! Баланс: ${response.data.balance} ₽`, 'success')
       await new Promise(resolve => setTimeout(resolve, 1000))
       window.location.reload()
-      setTimeout(() => setMessage(''), 3000)
     } catch (error) {
-      setMessageType('error')
-      setMessage(error.response?.data?.detail || 'Ошибка при покупке')
-      setTimeout(() => setMessage(''), 3000)
+      notify(error.response?.data?.detail || 'Ошибка при покупке', 'error')
     }
   }
 
   const handleBuyLunch = async () => {
     if (!user) return
     if (user.role !== 'student') {
-      setMessageType('error')
-      setMessage('Только ученики могут покупать обед')
-      setTimeout(() => setMessage(''), 3000)
+      notify('Только ученики могут покупать обед', 'error')
       return
     }
     
     if (user.balance < LUNCH_PRICE) {
-      setMessageType('error')
-      setMessage(`Недостаточно средств. Необходимо ${LUNCH_PRICE} ₽, у вас ${user.balance} ₽`)
-      setTimeout(() => setMessage(''), 3000)
+      notify(`Недостаточно средств. Необходимо ${LUNCH_PRICE} ₽, у вас ${user.balance} ₽`, 'error')
       return
     }
 
     try {
       const response = await axios.post('/api/users/buy/lunch')
-      setMessageType('success')
-      setMessage(`Обед куплен! Баланс: ${response.data.balance} ₽`)
+      notify(`Обед куплен! Баланс: ${response.data.balance} ₽`, 'success')
       await new Promise(resolve => setTimeout(resolve, 1000))
       window.location.reload()
-      setTimeout(() => setMessage(''), 3000)
     } catch (error) {
-      setMessageType('error')
-      setMessage(error.response?.data?.detail || 'Ошибка при покупке')
-      setTimeout(() => setMessage(''), 3000)
+      notify(error.response?.data?.detail || 'Ошибка при покупке', 'error')
     }
   }
 
@@ -166,12 +150,6 @@ export default function Index() {
     <div>
       <h2 className="page-title">Меню столовой</h2>
       
-      {message && (
-        <div className={`message message-${messageType}`}>
-          {message}
-        </div>
-      )}
-
       {user?.role === 'student' && (
         <div className="user-balance-display">
           Ваш баланс: <strong>{user.balance} ₽</strong>

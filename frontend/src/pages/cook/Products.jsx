@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import { useNotification } from '../../hooks/useNotification'
 
 export default function Products() {
     const [dishes, setDishes] = useState([]);
     const [products, setProducts] = useState([]);
     const [alergens, setAlergens] = useState([]);
-    const [error, setError] = useState('')
     const navigate = useNavigate()
+    const { notify } = useNotification()
 
     const [type, setType] = useState("product");
     const [name, setName] = useState("");
@@ -31,8 +32,6 @@ export default function Products() {
 
     const handleChanges = async (e) => {
         e.preventDefault();
-        setError('')
-        console.log("вроде начал постить");
         const data = {
             dishes: dishes,
             products: products,
@@ -41,8 +40,9 @@ export default function Products() {
         try {
             await axios.post('/api/cook/change', data)
             await fetchAll()
-            } catch (err) {
-            setError(err.response?.data?.detail || 'Ошибка отправки данных в БД')
+            notify("Изменения успешно сохранены", "success")
+        } catch (err) {
+            notify(err.response?.data?.detail || 'Ошибка отправки данных в БД', 'error')
         }
     }
 
@@ -68,8 +68,6 @@ export default function Products() {
 
     const CreateNew = async(e) =>  {
         e.preventDefault();
-        setError('')
-        console.log("вроде начал постить");
         let data2 = {
             name: name,
         }
@@ -89,13 +87,15 @@ export default function Products() {
                 amount: amount
             }
         }
-        console.log(data2);
-        console.log(`/api/cook/new_${type}`)
         try {
             await axios.post(`/api/cook/new_${type}`, data2)
             await fetchAll()
-            } catch (err) {
-            setError(err.response?.data?.detail || 'Ошибка отправки данных в БД')
+            notify(`${type === 'dish' ? 'Блюдо' : 'Продукт'} успешно создано`, "success")
+            setName('')
+            setComponents([])
+            setAmount(1)
+        } catch (err) {
+            notify(err.response?.data?.detail || 'Ошибка отправки данных в БД', 'error')
         }
     }
 
@@ -259,7 +259,6 @@ export default function Products() {
                             </div>
                         </div>
                     )}
-                    {error && <div className="error-message">{error}</div>}
                     <button type="submit" className="save-button">
                         Создать новую позицию
                     </button>

@@ -53,7 +53,7 @@ def buy_breakfast(
     if current_user.role != models.UserRole.student:
         raise HTTPException(status_code=403, detail="Только студенты могут покупать завтрак")
     
-    BREAKFAST_PRICE = 50
+    BREAKFAST_PRICE = 150
     if current_user.balance < BREAKFAST_PRICE:
         raise HTTPException(status_code=400, detail="Недостаточно средств")
     
@@ -84,7 +84,7 @@ def buy_lunch(
     if current_user.role != models.UserRole.student:
         raise HTTPException(status_code=403, detail="Только студенты могут покупать обед")
     
-    LUNCH_PRICE = 100
+    LUNCH_PRICE = 300
     if current_user.balance < LUNCH_PRICE:
         raise HTTPException(status_code=400, detail="Недостаточно средств")
     

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import { useNotification } from '../../hooks/useNotification'
 
 
 export default function Menu() {
@@ -14,13 +15,13 @@ export default function Menu() {
         given_lunches: 0,
     }
     const [menu, setMenu] = useState(menuTemplate);
-    const [error, setError] = useState('')
     const [fetchedMenu, setFetched] = useState(false);
 
     const [dishes, setDishes] = useState([]);
     const [products, setProducts] = useState([]);
     const [alergens, setAlergens] = useState([]);
     const navigate = useNavigate()
+    const { notify } = useNotification()
     
 
     const fetchAll = async () => {
@@ -41,16 +42,12 @@ export default function Menu() {
 
     const fetchByDate = async (e) => {
         e.preventDefault();
-        console.log(menuDate);
         try {
             const response = await axios.get(`/api/cook/menu_${menuDate}`);
             setMenu(response.data);
-            console.log(response);
-            setError('')
         } catch (error) {
             setMenu(menuTemplate);
-            setError("Меню на эту дату не существует");
-            console.error('Error fetching menu for this date:', error);
+            notify("Меню на эту дату не существует", "error");
         }
         setFetched(true);
     }
@@ -58,14 +55,12 @@ export default function Menu() {
     const confirmMenu = async (e) => {
         e.preventDefault();
         let build_menu = {...menu, date: menuDate};
-        console.log("Внёс");
-        console.log(build_menu);
         try {
             await axios.post('/api/cook/new_menu', build_menu)
+            notify("Меню успешно сохранено", "success")
             navigate('/cook/menu')
         } catch (err) {
-            setError(err.response?.data?.detail || 'Ошибка отправки данных в БД')
-            console.error('Ошибка отправки данных в БД:', err);
+            notify(err.response?.data?.detail || 'Ошибка отправки данных в БД', 'error')
         }
     }
 
@@ -114,7 +109,7 @@ export default function Menu() {
                 </button>
             </form>
         </div>
-        {!fetchedMenu && !error && (
+        {!fetchedMenu && (
             <h3>Выберите дату на которую хотите посмотреть/создать меню</h3>
         )}
         {fetchedMenu && (
