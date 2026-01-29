@@ -7,9 +7,6 @@ class UserRole(str, enum.Enum):
     cook="cook"
     admin="admin"
 
-class ProductType(str, enum.Enum):
-    meal="meal"
-    product="product"
 
 class User(Base):
     __tablename__ = "users"
@@ -34,13 +31,21 @@ class Menu(Base):
     given_lunches = Column(Integer, default=0)
 
 
-class Product(Base):
-    __tablename__ = "products"
+class Dish(Base):
+    __tablename__ = "dish"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True)
-    type = Column(Enum(ProductType), default=ProductType.product)
+    products = Column(String)
     amount = Column(Integer, default=1)
+    name = Column(String, unique=True)
+
+class Product(Base):
+    __tablename__ = "product"
+
+    id = Column(Integer, primary_key=True, index=True)
+    alergens = Column(String)
+    amount = Column(Integer, default=1)
+    name = Column(String, unique=True)
 
 class Payment(Base):
     __tablename__ = "payments"
@@ -50,3 +55,8 @@ class Payment(Base):
     amount = Column(Integer)
     type = Column(String)
     date = Column(Date)
+class Alergen(Base):
+    __tablename__ = "alergen"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True)

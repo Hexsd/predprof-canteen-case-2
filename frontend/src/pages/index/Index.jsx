@@ -10,6 +10,9 @@ export default function Index() {
 
   const BREAKFAST_PRICE = 50
   const LUNCH_PRICE = 100
+  const [dishes, setDishes] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [alergens, setAlergens] = useState([]);
 
   const fetchMenu = async () => {
     try {
@@ -20,8 +23,20 @@ export default function Index() {
     }
   }
 
+  const fetchAll = async () => {
+          try {
+            const response = await axios.get('/api/cook/all');
+            setDishes(response.data[0]);
+            setProducts(response.data[1]);
+            setAlergens(response.data[2]);
+          } catch (error) {
+            console.error('Error fetching products and dishes:', error);
+          }
+      }
+
   useEffect(() => {
-    fetchMenu()
+    fetchMenu();
+    fetchAll();
   }, [])
 
   const handleBuyBreakfast = async () => {
@@ -88,6 +103,18 @@ export default function Index() {
     return <div className="loading">Меню на сегодня не найдено.</div>
   }
 
+  function GetName(table, id) {
+    let name = "";
+    table.forEach(element => {
+      if (element.id==id)
+      {
+        name = element.name;
+        return
+      }
+    });
+    return name
+  }
+
   return (
     <div>
       <h2 className="page-title">Меню столовой</h2>
@@ -109,7 +136,7 @@ export default function Index() {
           <h3>Завтрак</h3>
           <ul className="menu-list">
             {menu.breakfast.split('#').map((item, index) => (
-              <li key={index}>{item}</li>
+              <li key={index}>{GetName(dishes, parseInt(item))}</li>
             ))}
           </ul>
           {user?.role === 'student' && (
@@ -126,7 +153,7 @@ export default function Index() {
           <h3>Обед</h3>
           <ul className="menu-list">
             {menu.lunch.split('#').map((item, index) => (
-              <li key={index}>{item}</li>
+              <li key={index}>{GetName(dishes, parseInt(item))}</li>
             ))}
           </ul>
           {user?.role === 'student' && (

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from datetime import date
-from .models import UserRole, ProductType
-from typing import Optional
+from .models import UserRole
+from typing import Optional, List
 class UserCreate(BaseModel):
     email: EmailStr
     name: str
@@ -45,18 +45,38 @@ class Menu(BaseModel):
 class MenuCreate(BaseModel):
     date: date
     breakfast: str
+    given_breakfasts: int
     lunch: str
+    given_lunches: int
+
+class Dish(BaseModel):
+    id: int
+    products: str
+    amount: int
+    name: str
+
+class DishCreate(BaseModel):
+    products: str
+    amount: int
+    name: str
 
 class Product(BaseModel):
     id: int
-    name: str
-    type: Optional[ProductType] = ProductType.product
+    alergens: str
     amount: int
+    name: str
 
 class ProductCreate(BaseModel):
-    name: str
-    type: Optional[ProductType] = ProductType.product
+    alergens: str
     amount: int
+    name: str
+
+class Alergen(BaseModel):
+    id: int
+    name: str
+
+class AlergenCreate(BaseModel):
+    name: str
     
 class UserPersonalPage(BaseModel):
     email: EmailStr
@@ -70,3 +90,8 @@ class Payment(BaseModel):
     date: date
     class Config:
         from_attributes = True
+
+class ChangeCook(BaseModel):
+    dishes: List[Dish]
+    products: List[Product]
+    alergens: List[Alergen]
