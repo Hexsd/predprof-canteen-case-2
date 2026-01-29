@@ -30,7 +30,7 @@ export default function Stats() {
 
     return (
         <div className="stats-container">
-            <h1>Панель администратора</h1>
+            <h1 className="page-title">Панель администратора</h1>
             
             <div className="stats-grid">
                 <div className="stat-card">

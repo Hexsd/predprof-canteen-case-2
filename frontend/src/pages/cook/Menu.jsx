@@ -1,9 +1,6 @@
-import React, { useState, useEffect, use } from 'react'
+import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
-
-
-
 
 
 export default function Menu() {
@@ -101,85 +98,91 @@ export default function Menu() {
     }
 
     return (
-    <div>
-        <form onSubmit={fetchByDate}>
-            <input
-              type="date"
-              value={menuDate}
-              onChange={(e) => setMenuDate(e.target.value)}
-              required
-              className="form-input"
-            />
-            <button type="submit" className="form-button">
+    <div className="cook-container">
+        <div className="cook-section">
+            <h2>Управление меню</h2>
+            <form onSubmit={fetchByDate} className="date-input-group">
+                <input
+                  type="date"
+                  value={menuDate}
+                  onChange={(e) => setMenuDate(e.target.value)}
+                  required
+                  className="form-input"
+                />
+                <button type="submit" className="form-button">
                     Выбрать меню за эту дату
-            </button>
-        </form>
-        {fetchedMenu && error && (
-            <h3>Создать меню на выбранную дату</h3>
-        )}
+                </button>
+            </form>
+        </div>
         {!fetchedMenu && !error && (
             <h3>Выберите дату на которую хотите посмотреть/создать меню</h3>
         )}
         {fetchedMenu && (
-            <div>
-                <h1>Завтрак</h1>
+            <div className="cook-section">
+                <h3>Завтрак</h3>
                 <form onSubmit={confirmMenu}>
-                    <table>
+                    <table className="cook-table">
+                        <thead>
                         <tr>
                             <th>Номер</th>
                             <th>Блюдо</th>
                             <th>Убрать позицию</th>
                         </tr>
+                        </thead>
+                        <tbody>
                         {menu.breakfast!="" && menu.breakfast.split('#').map((item, index) => (
-                            <tr>
-                                <th>{index+1}</th>
-                                <th>
+                            <tr key={index}>
+                                <td>{index+1}</td>
+                                <td>
                                     <select value={parseInt(item)} onChange={(e) => changeDishBreakfast(index, String(e.target.value))}>
                                         {dishes.map((dish, indexx) => (
-                                            <option value={dish.id}>{dish.name}</option>
+                                            <option key={dish.id} value={dish.id}>{dish.name}</option>
                                         ))}
                                     </select>
-                                </th>
-                                <th><button type="button" onClick={() => removeBreakfastDish(index)} className="form-button" style={{width: "30px", backgroundColor: "red"}}>-</button></th>
+                                </td>
+                                <td><button type="button" onClick={() => removeBreakfastDish(index)} className="remove-btn">Удалить</button></td>
                             </tr>
                         ))}
+                        </tbody>
                     </table>
-                    <button type="button" onClick={() => (setMenu({...menu, breakfast: menu.breakfast === "" ? "1" : menu.breakfast+"#1"}))} className="form-button" style={{width: "30px"}}>
-                    +
+                    <button type="button" onClick={() => (setMenu({...menu, breakfast: menu.breakfast === "" ? "1" : menu.breakfast+"#1"}))} className="add-dish-btn">
+                        + Добавить блюдо
                     </button>
-                    <h1>Обед</h1>
-                        <table>
+                    
+                    <h3>Обед</h3>
+                    <table className="cook-table">
+                        <thead>
                             <tr>
                                 <th>Номер</th>
                                 <th>Блюдо</th>
                                 <th>Убрать позицию</th>
                             </tr>
+                        </thead>
+                        <tbody>
                             {menu.lunch!="" && menu.lunch.split('#').map((item, index) => (
-                                <tr>
-                                    <th>{index+1}</th>
-                                    <th>
+                                <tr key={index}>
+                                    <td>{index+1}</td>
+                                    <td>
                                         <select value={parseInt(item)} onChange={(e) => changeDishLunch(index, String(e.target.value))}>
                                             {dishes.map((dish, indexx) => (
-                                                <option value={dish.id}>{dish.name}</option>
+                                                <option key={dish.id} value={dish.id}>{dish.name}</option>
                                             ))}
                                         </select>
-                                    </th>
-                                    <th><button type="button" onClick={() => removeLunchDish(index)} className="form-button" style={{width: "30px", backgroundColor: "red"}}>-</button></th>
+                                    </td>
+                                    <td><button type="button" onClick={() => removeLunchDish(index)} className="remove-btn">Удалить</button></td>
                                 </tr>
                             ))}
-                        </table>
+                        </tbody>
+                    </table>
                     
-                    <button type="button" onClick={() => (setMenu({...menu, lunch: menu.lunch === "" ? "1" : menu.lunch+"#1"}))} className="form-button" style={{width: "30px"}}>
-                        +
-                    </button>
-                    <button type="submit" className="form-button">
-                            Внести изменения
+                    <button type="button" onClick={() => (setMenu({...menu, lunch: menu.lunch === "" ? "1" : menu.lunch+"#1"}))} className="add-dish-btn">
+                        + Добавить блюдо
                     </button>
                 </form>
+                <button onClick={confirmMenu} className="save-button">
+                    Сохранить изменения
+                </button>
             </div>
         )}
-        
-
-
     </div>)
 }
