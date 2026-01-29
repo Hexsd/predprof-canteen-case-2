@@ -7,12 +7,9 @@ export default function CookRouter() {
     return (
         <Routes>
             <Route element={<CheckCook/>}>
-                <Route path="products" element={<Products/>}/>
-                <Route path="menu" element={<Menu/>}/>
+                <Route path="/products" element={<Products/>}/>
+                <Route path="/menu" element={<Menu/>}/>
             </Route> 
         </Routes>
-            
-        
     )
-   
 }

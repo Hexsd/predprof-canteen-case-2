@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
-import { useAuth } from './AuthContext'
+import { useAuth } from '../auth/AuthContext'
+
 export default function UserList() {
   const [users, setUsers] = useState([])
   const [error, setError] = useState('')
@@ -12,11 +13,6 @@ export default function UserList() {
     setError('')
     
     try {
-      const token = axios.defaults.headers.common['Authorization']
-      if (!token) {
-        throw new Error('No authorization token')
-      }
-      
       const res = await axios.get('/api/users')
       setUsers(res.data)
     } catch (error) {
@@ -55,6 +51,7 @@ export default function UserList() {
     }
     return roles[role] || role
   }
+
   const getRoleColor = (role) => {
     const colors = {
       student: 'blue',
@@ -63,6 +60,7 @@ export default function UserList() {
     }
     return colors[role] || 'gray'
   }
+
   const formatDate = (dateString) => {
     const date = new Date(dateString)
     return date.toLocaleDateString('ru-RU', { 
@@ -72,15 +70,13 @@ export default function UserList() {
     })
   }
 
-  const isAdmin = currentUser?.role === 'admin'
-
   if (loading) {
     return <div className="loading">Загрузка пользователей...</div>
   }
 
   return (
     <div>
-      <h2 className="page-title">Управление ролями</h2>
+      <h2 className="page-title">Управление пользователями</h2>
       
       {error && <div className="error-message">{error}</div>}
       
@@ -91,10 +87,12 @@ export default function UserList() {
           {users.map((user) => (
             <div key={user.id} className="user-card">
               <div className="user-name">{user.name}</div>
-              <div className="user-role">{getRoleName(user.role)}</div>
+              <div className="user-role" style={{color: getRoleColor(user.role)}}>
+                {getRoleName(user.role)}
+              </div>
               <div className="user-email">{user.email}</div>
               <div className="user-date">{formatDate(user.birth_date)}</div>
-              {isAdmin && user.id !== currentUser.id && (
+              {user.id !== currentUser.id && (
                 <select
                   className="role-select"
                   value={user.role}

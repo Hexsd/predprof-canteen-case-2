@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, Integer, String, Date, Enum
+from sqlalchemy import Column, Integer, String, Date, Enum, ForeignKey
 from .database import Base
 
 class UserRole(str, enum.Enum):
@@ -17,6 +17,7 @@ class User(Base):
     hashed_password = Column(String)
     birth_date = Column(Date)
     role=Column(Enum(UserRole), default=UserRole.student)
+    balance = Column(Integer, default=1000)
 
 
 class Menu(Base):
@@ -46,6 +47,14 @@ class Product(Base):
     amount = Column(Integer, default=1)
     name = Column(String, unique=True)
 
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    amount = Column(Integer)
+    type = Column(String)
+    date = Column(Date)
 class Alergen(Base):
     __tablename__ = "alergen"
 

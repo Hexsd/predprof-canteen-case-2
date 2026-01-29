@@ -8,7 +8,7 @@ from datetime import *
 
 router = APIRouter(prefix="/api/index", tags=["index"])
 
-@router.get("", response_model=schemas.MenuCreate)
+@router.get("", response_model=schemas.Menu)
 def get_index(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
@@ -16,5 +16,5 @@ def get_index(
     today = date.today()
     menu = db.query(models.Menu).filter(models.Menu.date == today).first()
     if not menu:
-        return
+        raise HTTPException(status_code=404, detail="Меню на сегодня не найдено")
     return menu

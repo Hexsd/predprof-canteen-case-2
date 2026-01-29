@@ -1,10 +1,11 @@
-import React from 'react'
-import { Outlet, Navigate } from 'react-router-dom'
+import React, { useState } from 'react'
+import { Outlet, Navigate, Link } from 'react-router-dom'
 import { useAuth } from '../pages/auth/AuthContext'
 import SideBar from './SideBar'
 
 export default function UserLayout() {
   const { user, logout, loading } = useAuth()
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   if (loading) {
     return <div className="loading">Загрузка...</div>
@@ -16,16 +17,16 @@ export default function UserLayout() {
 
   return (
     <div className="layout">
-      <SideBar />
+      <SideBar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
       
       <div className="main-content">
         <header className="header">
-          <h1>Столовая школы №1150</h1>
+          <h1>Система управления школьной столовой</h1>
           
           <div className="user-info">
-            <span className="user-greeting">
+            <Link to="/personal" className="user-greeting">
               Здравствуйте, {user.name}!
-            </span>
+            </Link>
             <button onClick={logout} className="logout-btn">
               Выйти
             </button>

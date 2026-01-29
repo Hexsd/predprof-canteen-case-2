@@ -18,6 +18,7 @@ class User(BaseModel):
     name: str
     birth_date: date
     role: UserRole
+    balance: int
     class Config:
         from_attributes = True
 class UserRoleUpdate(BaseModel):
@@ -81,6 +82,14 @@ class UserPersonalPage(BaseModel):
     email: EmailStr
     name: str
 
+class Payment(BaseModel):
+    id: int
+    user_id: int
+    amount: int
+    type: str
+    date: date
+    class Config:
+        from_attributes = True
 
 class ChangeCook(BaseModel):
     dishes: List[Dish]

@@ -37,26 +37,6 @@ export default function UserLayout() {
     })
   }
   return (
-    // <div className="layout">
-      
-    //   <div className="main-content">
-    //     <header className="header">
-    //       <h1>Столовая школы №1150</h1>
-          
-    //       <div className="user-info">
-    //         <span className="user-greeting">
-    //           Здравствуйте, {user.name}!
-    //         </span>
-    //         <button onClick={logout} className="logout-btn">
-    //           Выйти
-    //         </button>
-    //       </div>
-    //     </header>
-        
-    //     <div className="content">
-    //     </div>
-    //   </div>
-    // </div>
     <div>
       <h2 className="page-title"> Профиль</h2>
       <div className="user-card">
@@ -68,6 +48,12 @@ export default function UserLayout() {
         <div className="user-email">{user.email}</div>
         <h3>Дата рождения</h3>
         <div className="user-date">{formatDate(user.birth_date)}</div>
+        {user.role === 'student' && (
+          <>
+            <h3>Баланс кошелька</h3>
+            <div className="user-balance">{user.balance} ₽</div>
+          </>
+        )}
       </div>
     </div>
   )
