@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useAuth } from '../auth/AuthContext'
 import { useNotification } from '../../hooks/useNotification'
+import DishCard from '../../components/DishCard'
 
 function getMondayOfWeek(date) {
   const d = new Date(date);
@@ -20,9 +21,13 @@ export default function Index() {
 
   const BREAKFAST_PRICE = 150
   const LUNCH_PRICE = 300
-  const [dishes, setDishes] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [alergens, setAlergens] = useState([]);
+  const SUBSCRIPTION_PRICE_PER_DAY = 50
+  
+  const [dishes, setDishes] = useState([])
+  const [products, setProducts] = useState([])
+  const [alergens, setAlergens] = useState([])
+  const [subscription, setSubscription] = useState(null)
+  const [subscriptionActive, setSubscriptionActive] = useState(false)
 
   const fetchMenu = async (date) => {
     try {
@@ -46,9 +51,23 @@ export default function Index() {
           }
       }
 
+  const fetchSubscriptionStatus = async () => {
+    try {
+      const response = await axios.get('/api/users/subscription/status')
+      setSubscription(response.data)
+      setSubscriptionActive(response.data.is_active)
+    } catch (error) {
+      console.error('Error fetching subscription:', error)
+      setSubscriptionActive(false)
+    }
+  }
+
   useEffect(() => {
     fetchMenu(selectedDate);
     fetchAll();
+    if (user?.role === 'student') {
+      fetchSubscriptionStatus()
+    }
   }, [selectedDate])
 
   const getWeekDates = (weekStart) => {
@@ -112,6 +131,16 @@ export default function Index() {
     }
   }
 
+  const handleGetBreakfastWithSubscription = async () => {
+    try {
+      await axios.post('/api/users/meal/breakfast-with-subscription')
+      notify('Завтрак отмечен!', 'success')
+      fetchSubscriptionStatus()
+    } catch (error) {
+      notify(error.response?.data?.detail || 'Ошибка при отметке', 'error')
+    }
+  }
+
   const handleBuyLunch = async () => {
     if (!user) return
     if (user.role !== 'student') {
@@ -134,6 +163,16 @@ export default function Index() {
     }
   }
 
+  const handleGetLunchWithSubscription = async () => {
+    try {
+      await axios.post('/api/users/meal/lunch-with-subscription')
+      notify('Обед отмечен!', 'success')
+      fetchSubscriptionStatus()
+    } catch (error) {
+      notify(error.response?.data?.detail || 'Ошибка при отметке', 'error')
+    }
+  }
+
   function GetName(table, id) {
     let name = "";
     table.forEach(element => {
@@ -151,8 +190,20 @@ export default function Index() {
       <h2 className="page-title">Меню столовой</h2>
       
       {user?.role === 'student' && (
-        <div className="user-balance-display">
-          Ваш баланс: <strong>{user.balance} ₽</strong>
+        <div className="index-info-section">
+          <div className="user-balance-display">
+            Ваш баланс: <strong>{user.balance} ₽</strong>
+          </div>
+          {subscriptionActive && subscription ? (
+            <div className="subscription-banner">
+              <span className="subscription-badge">Абонемент активен</span>
+              <span className="subscription-days">Осталось {subscription.days_remaining} дней</span>
+            </div>
+          ) : (
+            <div className="subscription-reminder">
+              Купите абонемент и получайте приемы пищи бесплатно!
+            </div>
+          )}
         </div>
       )}
 
@@ -190,42 +241,58 @@ export default function Index() {
         <div className="menu-container">
           <div className="menu-section">
             <h3>Завтрак</h3>
-            <ul className="menu-list">
-              {menu.breakfast.split('#').map((item, index) => (
-                <li key={index}>{GetName(dishes, parseInt(item))}</li>
-              ))}
-            </ul>
-            {user?.role === 'student' && (
-              <button 
-                onClick={handleBuyBreakfast}
-                className="buy-button"
-              >
-                Купить завтрак - {BREAKFAST_PRICE} ₽
-              </button>
-            )}
+            <div className="dishes-scroll">
+              <div className="dishes-container">
+                {menu.breakfast.split('#').map((dishId, index) => {
+                  const dish = dishes.find(d => d.id === parseInt(dishId))
+                  if (!dish) return null
+                  return (
+                    <DishCard
+                      key={index}
+                      dish={dish}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+            <button
+              onClick={subscriptionActive ? handleGetBreakfastWithSubscription : handleBuyBreakfast}
+              className={`meal-buy-btn ${(!user || user.role !== 'student') ? 'disabled' : ''}`}
+              disabled={!user || user.role !== 'student'}
+            >
+              {subscriptionActive ? 'Получить завтрак' : `Купить завтрак - ${BREAKFAST_PRICE} ₽`}
+            </button>
           </div>
 
           <div className="menu-section">
             <h3>Обед</h3>
-            <ul className="menu-list">
-              {menu.lunch.split('#').map((item, index) => (
-                <li key={index}>{GetName(dishes, parseInt(item))}</li>
-              ))}
-            </ul>
-            {user?.role === 'student' && (
-              <button 
-                onClick={handleBuyLunch}
-                className="buy-button"
-              >
-                Купить обед - {LUNCH_PRICE} ₽
-              </button>
-            )}
+            <div className="dishes-scroll">
+              <div className="dishes-container">
+                {menu.lunch.split('#').map((dishId, index) => {
+                  const dish = dishes.find(d => d.id === parseInt(dishId))
+                  if (!dish) return null
+                  return (
+                    <DishCard
+                      key={index}
+                      dish={dish}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+            <button
+              onClick={subscriptionActive ? handleGetLunchWithSubscription : handleBuyLunch}
+              className={`meal-buy-btn ${(!user || user.role !== 'student') ? 'disabled' : ''}`}
+              disabled={!user || user.role !== 'student'}
+            >
+              {subscriptionActive ? 'Получить обед' : `Купить обед - ${LUNCH_PRICE} ₽`}
+            </button>
           </div>
         </div>
       ) : (
         <div className="menu-container">
           <div className="no-menu-message">
-            <p>Меню на {formatDate(selectedDate)} не составлено 👹</p>
+            <p>Меню на {formatDate(selectedDate)} не составлено</p>
             <p className="text-secondary">Выберите другую дату или попробуйте позже.</p>
           </div>
         </div>
