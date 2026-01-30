@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from .. import models, schemas, auth
 from ..database import get_db
-from datetime import date
+from datetime import date, timedelta
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -53,7 +53,7 @@ def buy_breakfast(
     if current_user.role != models.UserRole.student:
         raise HTTPException(status_code=403, detail="Только студенты могут покупать завтрак")
     
-    BREAKFAST_PRICE = 50
+    BREAKFAST_PRICE = 150
     if current_user.balance < BREAKFAST_PRICE:
         raise HTTPException(status_code=400, detail="Недостаточно средств")
     
@@ -84,7 +84,7 @@ def buy_lunch(
     if current_user.role != models.UserRole.student:
         raise HTTPException(status_code=403, detail="Только студенты могут покупать обед")
     
-    LUNCH_PRICE = 100
+    LUNCH_PRICE = 300
     if current_user.balance < LUNCH_PRICE:
         raise HTTPException(status_code=400, detail="Недостаточно средств")
     
@@ -106,3 +106,118 @@ def buy_lunch(
     db.refresh(current_user)
     
     return current_user
+
+@router.post("/subscription/buy", response_model=schemas.Subscription)
+def buy_subscription(
+    sub_data: schemas.SubscriptionCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role != models.UserRole.student:
+        raise HTTPException(status_code=403, detail="Только студенты могут покупать абонемент")
+    
+    SUBSCRIPTION_PRICE_PER_DAY = 50
+    total_price = sub_data.days * SUBSCRIPTION_PRICE_PER_DAY
+    
+    if current_user.balance < total_price:
+        raise HTTPException(status_code=400, detail="Недостаточно средств")
+    
+    # Удалить старый абонемент, если он есть
+    old_subscription = db.query(models.Subscription).filter(
+        models.Subscription.user_id == current_user.id
+    ).first()
+    if old_subscription:
+        db.delete(old_subscription)
+    
+    start_date_val = date.today()
+    end_date_val = start_date_val + timedelta(days=sub_data.days)
+    
+    subscription = models.Subscription(
+        user_id=current_user.id,
+        days=sub_data.days,
+        start_date=start_date_val,
+        end_date=end_date_val
+    )
+    
+    current_user.balance -= total_price
+    
+    payment = models.Payment(
+        user_id=current_user.id,
+        amount=total_price,
+        type="subscription",
+        date=date.today()
+    )
+    db.add(payment)
+    db.add(subscription)
+    db.commit()
+    db.refresh(subscription)
+    
+    return subscription
+
+@router.get("/subscription/status", response_model=schemas.SubscriptionResponse)
+def get_subscription_status(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    subscription = db.query(models.Subscription).filter(
+        models.Subscription.user_id == current_user.id
+    ).first()
+    
+    is_active = False
+    days_remaining = 0
+    
+    if subscription and subscription.end_date >= date.today():
+        is_active = True
+        days_remaining = (subscription.end_date - date.today()).days
+    
+    return schemas.SubscriptionResponse(
+        subscription=subscription,
+        is_active=is_active,
+        days_remaining=days_remaining
+    )
+
+@router.post("/meal/breakfast-with-subscription")
+def get_breakfast_with_subscription(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role != models.UserRole.student:
+        raise HTTPException(status_code=403, detail="Только студенты могут получать завтрак")
+    
+    subscription = db.query(models.Subscription).filter(
+        models.Subscription.user_id == current_user.id
+    ).first()
+    
+    if not subscription or subscription.end_date < date.today():
+        raise HTTPException(status_code=400, detail="Абонемент не активен")
+    
+    menu = db.query(models.Menu).filter(models.Menu.date == date.today()).first()
+    if menu:
+        menu.given_breakfasts += 1
+    
+    db.commit()
+    
+    return {"message": "Завтрак отмечен", "date": date.today()}
+
+@router.post("/meal/lunch-with-subscription")
+def get_lunch_with_subscription(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role != models.UserRole.student:
+        raise HTTPException(status_code=403, detail="Только студенты могут получать обед")
+    
+    subscription = db.query(models.Subscription).filter(
+        models.Subscription.user_id == current_user.id
+    ).first()
+    
+    if not subscription or subscription.end_date < date.today():
+        raise HTTPException(status_code=400, detail="Абонемент не активен")
+    
+    menu = db.query(models.Menu).filter(models.Menu.date == date.today()).first()
+    if menu:
+        menu.given_lunches += 1
+    
+    db.commit()
+    
+    return {"message": "Обед отмечен", "date": date.today()}

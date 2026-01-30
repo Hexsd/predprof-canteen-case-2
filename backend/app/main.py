@@ -6,6 +6,7 @@ from .api_routers.auth_routes import router as auth_router
 from .api_routers.index_routes import router as index_router
 from .api_routers.cook_routes import router as cook_router
 from .api_routers.admin_routes import router as admin_router
+from .api_routers.notifications_routes import router as notifications_router
 import time
 
 for i in range(30):
@@ -34,6 +35,7 @@ app.include_router(users_router)
 app.include_router(index_router)
 app.include_router(cook_router)
 app.include_router(admin_router)
+app.include_router(notifications_router)
 
 @app.get("/")
 def root():

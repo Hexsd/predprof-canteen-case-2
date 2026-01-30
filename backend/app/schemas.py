@@ -95,3 +95,20 @@ class ChangeCook(BaseModel):
     dishes: List[Dish]
     products: List[Product]
     alergens: List[Alergen]
+
+class Subscription(BaseModel):
+    id: int
+    user_id: int
+    days: int
+    start_date: date
+    end_date: date
+    class Config:
+        from_attributes = True
+
+class SubscriptionCreate(BaseModel):
+    days: int
+
+class SubscriptionResponse(BaseModel):
+    subscription: Optional[Subscription] = None
+    is_active: bool
+    days_remaining: int

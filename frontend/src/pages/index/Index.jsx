@@ -1,25 +1,42 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useAuth } from '../auth/AuthContext'
+import { useNotification } from '../../hooks/useNotification'
+import DishCard from '../../components/DishCard'
+
+function getMondayOfWeek(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  return new Date(d.setDate(diff));
+}
 
 export default function Index() {
   const [menu, setMenu] = useState(null)
-  const [message, setMessage] = useState('')
-  const [messageType, setMessageType] = useState('')
+  const today = new Date()
+  const [selectedDate, setSelectedDate] = useState(today)
+  const [weekStart, setWeekStart] = useState(getMondayOfWeek(today))
   const { user } = useAuth()
+  const { notify } = useNotification()
 
-  const BREAKFAST_PRICE = 50
-  const LUNCH_PRICE = 100
-  const [dishes, setDishes] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [alergens, setAlergens] = useState([]);
+  const BREAKFAST_PRICE = 150
+  const LUNCH_PRICE = 300
+  const SUBSCRIPTION_PRICE_PER_DAY = 50
+  
+  const [dishes, setDishes] = useState([])
+  const [products, setProducts] = useState([])
+  const [alergens, setAlergens] = useState([])
+  const [subscription, setSubscription] = useState(null)
+  const [subscriptionActive, setSubscriptionActive] = useState(false)
 
-  const fetchMenu = async () => {
+  const fetchMenu = async (date) => {
     try {
-      const response = await axios.get('/api/index')
+      const dateStr = date.toISOString().split('T')[0]
+      const response = await axios.get(`/api/index?date=${dateStr}`)
       setMenu(response.data)
     } catch (error) {
       console.error('Error fetching menu:', error)
+      setMenu(null)
     }
   }
 
@@ -34,73 +51,126 @@ export default function Index() {
           }
       }
 
+  const fetchSubscriptionStatus = async () => {
+    try {
+      const response = await axios.get('/api/users/subscription/status')
+      setSubscription(response.data)
+      setSubscriptionActive(response.data.is_active)
+    } catch (error) {
+      console.error('Error fetching subscription:', error)
+      setSubscriptionActive(false)
+    }
+  }
+
   useEffect(() => {
-    fetchMenu();
+    fetchMenu(selectedDate);
     fetchAll();
-  }, [])
+    if (user?.role === 'student') {
+      fetchSubscriptionStatus()
+    }
+  }, [selectedDate])
+
+  const getWeekDates = (weekStart) => {
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStart);
+      date.setDate(date.getDate() + i);
+      dates.push(date);
+    }
+    return dates;
+  }
+
+  const weekDates = getWeekDates(weekStart);
+
+  const goToPreviousWeek = () => {
+    const newWeekStart = new Date(weekStart);
+    newWeekStart.setDate(newWeekStart.getDate() - 7);
+    setWeekStart(newWeekStart);
+  }
+
+  const goToNextWeek = () => {
+    const newWeekStart = new Date(weekStart);
+    newWeekStart.setDate(newWeekStart.getDate() + 7);
+    setWeekStart(newWeekStart);
+  }
+
+  const selectDate = (date) => {
+    setSelectedDate(date);
+  }
+
+  const formatDate = (date) => {
+    const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+    return `${days[date.getDay()]} ${date.getDate()}`;
+  }
+
+  const formatMonthYear = (date) => {
+    const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
+                    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+    return `${months[date.getMonth()]} ${date.getFullYear()}`;
+  }
 
   const handleBuyBreakfast = async () => {
     if (!user) return
     if (user.role !== 'student') {
-      setMessageType('error')
-      setMessage('Только ученики могут покупать завтрак')
-      setTimeout(() => setMessage(''), 3000)
+      notify('Только ученики могут покупать завтрак', 'error')
       return
     }
     
     if (user.balance < BREAKFAST_PRICE) {
-      setMessageType('error')
-      setMessage(`Недостаточно средств. Необходимо ${BREAKFAST_PRICE} ₽, у вас ${user.balance} ₽`)
-      setTimeout(() => setMessage(''), 3000)
+      notify(`Недостаточно средств. Необходимо ${BREAKFAST_PRICE} ₽, у вас ${user.balance} ₽`, 'error')
       return
     }
 
     try {
       const response = await axios.post('/api/users/buy/breakfast')
-      setMessageType('success')
-      setMessage(`Завтрак куплен! Баланс: ${response.data.balance} ₽`)
+      notify(`Завтрак куплен! Баланс: ${response.data.balance} ₽`, 'success')
       await new Promise(resolve => setTimeout(resolve, 1000))
       window.location.reload()
-      setTimeout(() => setMessage(''), 3000)
     } catch (error) {
-      setMessageType('error')
-      setMessage(error.response?.data?.detail || 'Ошибка при покупке')
-      setTimeout(() => setMessage(''), 3000)
+      notify(error.response?.data?.detail || 'Ошибка при покупке', 'error')
+    }
+  }
+
+  const handleGetBreakfastWithSubscription = async () => {
+    try {
+      await axios.post('/api/users/meal/breakfast-with-subscription')
+      notify('Завтрак отмечен!', 'success')
+      fetchSubscriptionStatus()
+    } catch (error) {
+      notify(error.response?.data?.detail || 'Ошибка при отметке', 'error')
     }
   }
 
   const handleBuyLunch = async () => {
     if (!user) return
     if (user.role !== 'student') {
-      setMessageType('error')
-      setMessage('Только ученики могут покупать обед')
-      setTimeout(() => setMessage(''), 3000)
+      notify('Только ученики могут покупать обед', 'error')
       return
     }
     
     if (user.balance < LUNCH_PRICE) {
-      setMessageType('error')
-      setMessage(`Недостаточно средств. Необходимо ${LUNCH_PRICE} ₽, у вас ${user.balance} ₽`)
-      setTimeout(() => setMessage(''), 3000)
+      notify(`Недостаточно средств. Необходимо ${LUNCH_PRICE} ₽, у вас ${user.balance} ₽`, 'error')
       return
     }
 
     try {
       const response = await axios.post('/api/users/buy/lunch')
-      setMessageType('success')
-      setMessage(`Обед куплен! Баланс: ${response.data.balance} ₽`)
+      notify(`Обед куплен! Баланс: ${response.data.balance} ₽`, 'success')
       await new Promise(resolve => setTimeout(resolve, 1000))
       window.location.reload()
-      setTimeout(() => setMessage(''), 3000)
     } catch (error) {
-      setMessageType('error')
-      setMessage(error.response?.data?.detail || 'Ошибка при покупке')
-      setTimeout(() => setMessage(''), 3000)
+      notify(error.response?.data?.detail || 'Ошибка при покупке', 'error')
     }
   }
 
-  if (!menu) {
-    return <div className="loading">Меню на сегодня не найдено.</div>
+  const handleGetLunchWithSubscription = async () => {
+    try {
+      await axios.post('/api/users/meal/lunch-with-subscription')
+      notify('Обед отмечен!', 'success')
+      fetchSubscriptionStatus()
+    } catch (error) {
+      notify(error.response?.data?.detail || 'Ошибка при отметке', 'error')
+    }
   }
 
   function GetName(table, id) {
@@ -119,53 +189,114 @@ export default function Index() {
     <div>
       <h2 className="page-title">Меню столовой</h2>
       
-      {message && (
-        <div className={`message message-${messageType}`}>
-          {message}
-        </div>
-      )}
-
       {user?.role === 'student' && (
-        <div className="user-balance-display">
-          Ваш баланс: <strong>{user.balance} ₽</strong>
+        <div className="index-info-section">
+          <div className="user-balance-display">
+            Ваш баланс: <strong>{user.balance} ₽</strong>
+          </div>
+          {subscriptionActive && subscription ? (
+            <div className="subscription-banner">
+              <span className="subscription-badge">Абонемент активен</span>
+              <span className="subscription-days">Осталось {subscription.days_remaining} дней</span>
+            </div>
+          ) : (
+            <div className="subscription-reminder">
+              Купите абонемент и получайте приемы пищи бесплатно!
+            </div>
+          )}
         </div>
       )}
 
-      <div className="menu-container">
-        <div className="menu-section">
-          <h3>Завтрак</h3>
-          <ul className="menu-list">
-            {menu.breakfast.split('#').map((item, index) => (
-              <li key={index}>{GetName(dishes, parseInt(item))}</li>
-            ))}
-          </ul>
-          {user?.role === 'student' && (
-            <button 
-              onClick={handleBuyBreakfast}
-              className="buy-button"
-            >
-              Купить завтрак - {BREAKFAST_PRICE} ₽
-            </button>
-          )}
-        </div>
-
-        <div className="menu-section">
-          <h3>Обед</h3>
-          <ul className="menu-list">
-            {menu.lunch.split('#').map((item, index) => (
-              <li key={index}>{GetName(dishes, parseInt(item))}</li>
-            ))}
-          </ul>
-          {user?.role === 'student' && (
-            <button 
-              onClick={handleBuyLunch}
-              className="buy-button"
-            >
-              Купить обед - {LUNCH_PRICE} ₽
-            </button>
-          )}
-        </div>
+      <div className="month-year-header">
+        {formatMonthYear(weekStart)}
       </div>
+
+      <div className="week-selector">
+        <button onClick={goToPreviousWeek} className="week-nav-btn week-nav-prev">
+          ‹‹
+        </button>
+        
+        <div className="week-dates">
+          {weekDates.map((date) => (
+            <button
+              key={date.toISOString()}
+              onClick={() => selectDate(date)}
+              className={`week-date-btn ${
+                date.toISOString().split('T')[0] === selectedDate.toISOString().split('T')[0]
+                  ? 'active'
+                  : ''
+              }`}
+            >
+              {formatDate(date)}
+            </button>
+          ))}
+        </div>
+        
+        <button onClick={goToNextWeek} className="week-nav-btn week-nav-next">
+          ››
+        </button>
+      </div>
+
+      {menu ? (
+        <div className="menu-container">
+          <div className="menu-section">
+            <h3>Завтрак</h3>
+            <div className="dishes-scroll">
+              <div className="dishes-container">
+                {menu.breakfast.split('#').map((dishId, index) => {
+                  const dish = dishes.find(d => d.id === parseInt(dishId))
+                  if (!dish) return null
+                  return (
+                    <DishCard
+                      key={index}
+                      dish={dish}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+            <button
+              onClick={subscriptionActive ? handleGetBreakfastWithSubscription : handleBuyBreakfast}
+              className={`meal-buy-btn ${(!user || user.role !== 'student') ? 'disabled' : ''}`}
+              disabled={!user || user.role !== 'student'}
+            >
+              {subscriptionActive ? 'Получить завтрак' : `Купить завтрак - ${BREAKFAST_PRICE} ₽`}
+            </button>
+          </div>
+
+          <div className="menu-section">
+            <h3>Обед</h3>
+            <div className="dishes-scroll">
+              <div className="dishes-container">
+                {menu.lunch.split('#').map((dishId, index) => {
+                  const dish = dishes.find(d => d.id === parseInt(dishId))
+                  if (!dish) return null
+                  return (
+                    <DishCard
+                      key={index}
+                      dish={dish}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+            <button
+              onClick={subscriptionActive ? handleGetLunchWithSubscription : handleBuyLunch}
+              className={`meal-buy-btn ${(!user || user.role !== 'student') ? 'disabled' : ''}`}
+              disabled={!user || user.role !== 'student'}
+            >
+              {subscriptionActive ? 'Получить обед' : `Купить обед - ${LUNCH_PRICE} ₽`}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="menu-container">
+          <div className="no-menu-message">
+            <p>Меню на {formatDate(selectedDate)} не составлено</p>
+            <p className="text-secondary">Выберите другую дату или попробуйте позже.</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

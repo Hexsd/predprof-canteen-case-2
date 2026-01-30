@@ -1,13 +1,14 @@
-import React, { useState, useEffect, use } from 'react'
+import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import { useNotification } from '../../hooks/useNotification'
 
 export default function Products() {
     const [dishes, setDishes] = useState([]);
     const [products, setProducts] = useState([]);
     const [alergens, setAlergens] = useState([]);
-    const [error, setError] = useState('')
     const navigate = useNavigate()
+    const { notify } = useNotification()
 
     const [type, setType] = useState("product");
     const [name, setName] = useState("");
@@ -31,8 +32,6 @@ export default function Products() {
 
     const handleChanges = async (e) => {
         e.preventDefault();
-        setError('')
-        console.log("вроде начал постить");
         const data = {
             dishes: dishes,
             products: products,
@@ -41,8 +40,9 @@ export default function Products() {
         try {
             await axios.post('/api/cook/change', data)
             await fetchAll()
-            } catch (err) {
-            setError(err.response?.data?.detail || 'Ошибка отправки данных в БД')
+            notify("Изменения успешно сохранены", "success")
+        } catch (err) {
+            notify(err.response?.data?.detail || 'Ошибка отправки данных в БД', 'error')
         }
     }
 
@@ -68,8 +68,6 @@ export default function Products() {
 
     const CreateNew = async(e) =>  {
         e.preventDefault();
-        setError('')
-        console.log("вроде начал постить");
         let data2 = {
             name: name,
         }
@@ -89,13 +87,15 @@ export default function Products() {
                 amount: amount
             }
         }
-        console.log(data2);
-        console.log(`/api/cook/new_${type}`)
         try {
             await axios.post(`/api/cook/new_${type}`, data2)
             await fetchAll()
-            } catch (err) {
-            setError(err.response?.data?.detail || 'Ошибка отправки данных в БД')
+            notify(`${type === 'dish' ? 'Блюдо' : 'Продукт'} успешно создано`, "success")
+            setName('')
+            setComponents([])
+            setAmount(1)
+        } catch (err) {
+            notify(err.response?.data?.detail || 'Ошибка отправки данных в БД', 'error')
         }
     }
 
@@ -121,140 +121,149 @@ export default function Products() {
         return <div className="loading">Загрузка продуктов...</div>
     }
     return ( 
-        <div>
-            <h1>Таблица блюд</h1>
-            <form onSubmit={handleChanges}>
-                <table style={{border: "1px solid black"}}>
-                    <tr>
-                        <th>Название</th>
-                        <th>Продукты</th>
-                        <th>Количество</th>
-                    </tr>
+        <div className="cook-container">
+            <div className="cook-section">
+                <h2>Контроль продуктов</h2>
+                <h3>Таблица блюд</h3>
+                <form onSubmit={handleChanges}>
+                    <table className="cook-table">
+                        <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th>Продукты</th>
+                            <th>Количество</th>
+                        </tr>
+                        </thead>
+                        <tbody>
                     {dishes.map((item, index) => (
                         <tr key={index}>
-                            <th>{item.name}</th>
-                            <th>
+                            <td>{item.name}</td>
+                            <td>
                                 {item.products!="" && Join_names(item.products.split('#'), products).map((product, index) => (
-                                    <p>{product}</p>
+                                    <p key={index}>{product}</p>
                                 ))}
-                            </th>
-                            <th>
+                            </td>
+                            <td>
                                 <input
                                     type="number"
                                     value={item.amount}
                                     onChange={(e) => ChangeDishes(index, e.target.value)}
                                     required
-                                ></input>
-                            </th>
+                                />
+                            </td>
                         </tr>
                         ))}
+                        </tbody>
                 </table>
-                <h1>Таблица продуктов</h1>
-                <table style={{border: "1px solid black"}}>
+                </form>
+                <h3>Таблица продуктов</h3>
+                <form onSubmit={handleChanges}>
+                <table className="cook-table">
+                    <thead>
                     <tr>
                         <th>Название</th>
                         <th>Аллергены</th>
                         <th>Количество</th>
                     </tr>
+                    </thead>
+                    <tbody>
                     {products.map((item, index) => (
                         <tr key={index}>
-                            <th>{item.name}</th>
-                            <th>
-                                {item.alergens!="" && Join_names(item.alergens.split('#'), alergens).map((alergen, index) => (
-                                    <p>{alergen}</p>
+                            <td>{item.name}</td>
+                            <td>
+                                {item.alergens!="" && Join_names(item.alergens.split('#'), alergens).map((alergen, indexAler) => (
+                                    <p key={indexAler}>{alergen}</p>
                                 ))}
                                 {item.alergens==="" && (<p>Продукт гипоаллергеннен</p>) }
-                            </th>
-                            <th>
+                            </td>
+                            <td>
                                 <input
                                     type="number"
                                     value={item.amount}
                                     onChange={(e) => ChangeProducts(index, e.target.value)}
                                     required
-                                ></input>
-                            </th>
+                                />
+                            </td>
                         </tr>
                         ))}
+                        </tbody>
                 </table>
-                <button type="submit" className="form-button">
+                <button type="submit" className="save-button">
                     Внести изменения
                 </button>
             </form>
-
-            <div>
-                <form onSubmit={CreateNew} style={{border: "1px solid black"}}>
-                    <table>
-                        <tr>
-                            <th>Тип</th>
-                            <th>Название</th>
-                            {type=="product" && (<div><th>Аллергены</th><th>Количество</th></div>)}
-                            {type=="dish" && (<div><th>Продукты</th><th>Количество</th></div>)}
-                        </tr>
-                        <tr>
-                                <th><select required={true} value={type} onChange={(e) => {setType(e.target.value); setComponents([])}}>
-                                    <option value={"dish"}>Блюдо</option>
-                                    <option value={"product"}>Продукт</option>
-                                    <option value={"alergen"}>Аллерген</option>
-                                </select></th>
-                                <th><input
-                                    type="string"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                ></input>
-                                </th>
-                                <th>
-                                    {type=="product" && (
-                                        <div>
-                                            <th>
-                                                <select multiple={true} onChange={(e)=> setComponents(Array.from(e.target.selectedOptions, option => option.value))}>
-                                                    {alergens.map(alergen => (
-                                                        <option key={alergen.id} value={alergen.id}>{alergen.name}</option>
-                                                    ))}
-                                                </select>
-                                                <p>Выбрано {components.join(', ')}</p>
-                                            </th>
-                                            <th><input 
-                                                type="number"
-                                                value={amount}
-                                                onChange={(e) => setAmount(e.target.value)}
-                                                required={true}
-                                                ></input>
-                                            </th>
-                                        </div>
-                                    )}
-                                    {type=="dish" && (
-                                        <div>
-                                            <th>
-                                                <select multiple={true} onChange={(e)=> setComponents(Array.from(e.target.selectedOptions, option => option.value))}>
-                                                    {products.map(product => (
-                                                        <option key={product.id} value={product.id}>{product.name}</option>
-                                                    ))}
-                                                </select>
-                                                <p>Выбрано {components.join(', ')}</p>
-                                            </th>
-                                            <th><input 
-                                                type="number"
-                                                value={amount}
-                                                onChange={(e) => setAmount(e.target.value)}
-                                                required={true}
-                                                ></input>
-                                            </th>
-                                        </div>
-                                    )}
-                                </th>
-                                
-                                
-                            
-                        </tr>
-                        
-                    </table>
-                <button type="submit" className="form-button">
-                    Создать новую позицию
-                </button>
+            </div>
+            <div className="cook-section">
+                <h3>Создание новых позиций</h3>
+                <form onSubmit={CreateNew} className="menu-builder">
+                    <div className="form-group-inline">
+                        <div className="form-group">
+                            <label className="form-label">Тип позиции</label>
+                            <select required={true} value={type} onChange={(e) => {setType(e.target.value); setComponents([])}}>
+                                <option value={"dish"}>Блюдо</option>
+                                <option value={"product"}>Продукт</option>
+                                <option value={"alergen"}>Аллерген</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">Название</label>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                            />
+                        </div>
+                    </div>
+                    {type=="product" && (
+                        <div className="form-group-inline">
+                            <div className="form-group">
+                                <label className="form-label">Аллергены</label>
+                                <select multiple={true} onChange={(e)=> setComponents(Array.from(e.target.selectedOptions, option => option.value))}>
+                                    {alergens.map(alergen => (
+                                        <option key={alergen.id} value={alergen.id}>{alergen.name}</option>
+                                    ))}
+                                </select>
+                                <p>Выбрано: {components.length > 0 ? components.join(', ') : 'нет'}</p>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Количество</label>
+                                <input 
+                                    type="number"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    required={true}
+                                />
+                            </div>
+                        </div>
+                    )}
+                    {type=="dish" && (
+                        <div className="form-group-inline">
+                            <div className="form-group">
+                                <label className="form-label">Продукты</label>
+                                <select multiple={true} onChange={(e)=> setComponents(Array.from(e.target.selectedOptions, option => option.value))}>
+                                    {products.map(product => (
+                                        <option key={product.id} value={product.id}>{product.name}</option>
+                                    ))}
+                                </select>
+                                <p>Выбрано: {components.length > 0 ? components.join(', ') : 'нет'}</p>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Количество</label>
+                                <input 
+                                    type="number"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    required={true}
+                                />
+                            </div>
+                        </div>
+                    )}
+                    <button type="submit" className="save-button">
+                        Создать новую позицию
+                    </button>
                 </form>
             </div>
-            
-
         </div>
     )
 }

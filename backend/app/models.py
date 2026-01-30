@@ -60,3 +60,12 @@ class Alergen(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True)
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    days = Column(Integer)
+    start_date = Column(Date)
+    end_date = Column(Date, index=True)
