@@ -23,6 +23,7 @@ export default function Menu() {
     const navigate = useNavigate()
     const { notify } = useNotification()
     
+    const [portions, setPortions] = useState(1);
 
     const fetchAll = async () => {
             try {
@@ -90,6 +91,18 @@ export default function Menu() {
         let lunch_new = menu.lunch.split("#");
         lunch_new.splice(index, 1);
         setMenu({...menu, lunch: lunch_new.join("#")})
+    }
+
+    function findposition(id, table) {
+        let elem = {};
+        table.forEach(element => {
+            if (element.id==id)
+            {
+                elem = element
+            }
+        });
+        console.log(elem);
+        return elem
     }
 
     return (
@@ -177,6 +190,48 @@ export default function Menu() {
                 <button onClick={confirmMenu} className="save-button">
                     Сохранить изменения
                 </button>
+                {menu.breakfast!="" && menu.lunch!="" && (
+                    <div>
+                        <p>На сколько порций вы хотите рассчитать меню?</p>
+                        <input
+                            type="number"
+                            value={portions}
+                            onChange={(e) => setPortions(e.target.value)}
+                        />
+                        <table>
+                            <tr>
+                                <th>Блюдо</th>
+                                <th>Сколько блюд будет израсходовано</th>
+                                <th>Сколько блюд не хватает</th>
+                                <th>Сколько продуктов будет израсходовано</th>
+                                <th>Сколько продуктов не хватает</th>
+                            </tr>
+                            {Array.from(new Set((menu.breakfast+'#'+menu.lunch).split('#'))).map((item, index) => {
+                                const dish=findposition(parseInt(item), dishes);
+
+                                const k = (menu.breakfast+'#'+menu.lunch).split('#').filter(m => m==item).length
+
+                                return (
+                                    <tr>
+                                        <th>{dish.name}</th>
+                                        <th>{portions*k}</th>
+                                        <th>{portions*k-dish.amount>0 ? portions*k-dish.amount : "Блюд хватает"}</th>
+                                        <th>{portions*k-dish.amount<=0 ? "Блюда уже укомплектованы" : dish.products.split('#').map((iitem) => {const product=findposition(parseInt(iitem), products); return(<p>{product.name}: {portions*k-dish.amount}</p>)})}</th>
+                                        <th>{portions*k-dish.amount<=0 ? "Блюда уже укомплектованы" : dish.products.split('#').map((iitem) => {
+
+                                            const product=findposition(parseInt(iitem), products)
+                                            return (<p>{product.name}: {(portions*k-dish.amount)-product.amount>0 ? (portions*k-dish.amount)-product.amount : "Продуктов хватает"}</p>)
+                                        })}</th>
+                                    </tr>
+                                )
+                                
+                                
+                                
+                            }
+                            )}
+                        </table>
+                    </div>
+                )}
             </div>
         )}
     </div>)

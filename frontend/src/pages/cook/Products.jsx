@@ -105,7 +105,7 @@ export default function Products() {
             any_item.forEach(element => {
                 if (parseInt(element)==product.id)
                 {
-                    console.log("sovpadenye");
+                    // console.log("sovpadenye");
                     any_item_names.push(product.name);
                     return;
                 }
