@@ -30,6 +30,7 @@ export default function UserLayout() {
       console.error('Error fetching subscription:', error)
     }
   }
+
   const handleBuySubscription = async () => {
     if (!daysInput || parseInt(daysInput) <= 0) {
       notify('Введите корректное количество дней', 'error')
@@ -57,6 +58,7 @@ export default function UserLayout() {
       setIsLoading(false)
     }
   }
+
   const handleBalanceUp = async () => {
     if (!balanceInput || parseInt(balanceInput) <= 0) {
       notify('Введите корректную сумму', 'error')
@@ -113,89 +115,139 @@ export default function UserLayout() {
   }
 
   return (
-    <div>
-      <h2 className="page-title"> Профиль</h2>
-      <div className="user-card">
-        <h3>Имя</h3>
-        <div className="user-name">{user.name}</div>
-        <h3>Статус</h3>
-        <div className="user-role">{getRoleName(user.role)}</div>
-        <h3>Почта</h3>
-        <div className="user-email">{user.email}</div>
-        <h3>Дата рождения</h3>
-        <div className="user-date">{formatDate(user.birth_date)}</div>
-        {user.role === 'student' && (
-          <>
-            <h3>Баланс кошелька</h3>
-            <div className="user-balance">{user.balance} ₽</div>
-            <div className="balance-up">
-              <h3>Введите сумму для пополнения баланса</h3>
-              <input
-                id="balance"
-                type="number"
-                min="100"
-                max="10000"
-                value={balanceInput}
-                onChange={(e) => setBalanceInput(e.target.value)}
-                className="balance-input"
-                disabled={isLoading}
-                />
-              <button onClick={handleBalanceUp} className="btn-balance-up">
-                Пополнить баланс
-              </button>
+    <div className="profile-page">
+      <h2 className="page-title">Профиль</h2>
+      <div className="user-card user-card--full">
+        <div className="user-avatar">
+          <span>{user.name?.[0]?.toUpperCase() || 'U'}</span>
+        </div>
+
+        <div className="user-main">
+          <div className="user-name">{user.name}</div>
+          <div className="user-role">{getRoleName(user.role)}</div>
+        </div>
+
+        <div className="user-meta">
+          <div>
+            <div className="user-meta-item-label">Почта</div>
+            <div className="user-meta-item-value">{user.email}</div>
+          </div>
+          <div>
+            <div className="user-meta-item-label">Дата рождения</div>
+            <div className="user-meta-item-value">
+              {formatDate(user.birth_date)}
             </div>
-            <div className="subscription-section">
-              <h3>Абонемент</h3>
-              {subscriptionActive && subscription.subscription ? (
-                <div className="subscription-active">
-                  <div className="subscription-status">
-                    Активен
-                  </div>
-                  <div className="subscription-details">
-                    <p>Осталось дней: <strong>{subscription.days_remaining}</strong></p>
-                    <p>Действует до: <strong>{formatDate(subscription.subscription.end_date)}</strong></p>
-                  </div>
+          </div>
+        </div>
+      </div>
+
+      {user.role === 'student' && (
+        <div className="profile-bottom-row">
+          <div className="balance-card">
+            <div className="balance-card-header">
+              <div className="balance-title">Баланс кошелька</div>
+              <div className="balance-amount">{user.balance} ₽</div>
+            </div>
+
+            <div className="balance-up balance-up--no-border">
+              <div className="user-meta-item-label">
+                Пополнить баланс
+              </div>
+              <div className="balance-input-row">
+                <input
+                  id="balance"
+                  type="number"
+                  min="100"
+                  max="10000"
+                  value={balanceInput}
+                  onChange={(e) => setBalanceInput(e.target.value)}
+                  className="balance-input"
+                  disabled={isLoading}
+                />
+                <button
+                  onClick={handleBalanceUp}
+                  className="btn-balance-up"
+                  disabled={isLoading}
+                >
+                  Пополнить
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="subscription-section subscription-section--card">
+            <h3>Абонемент</h3>
+            {subscriptionActive && subscription?.subscription ? (
+              <div className="subscription-active">
+                <div className="subscription-status">
+                  Активен
                 </div>
-              ) : (
-                <div className="subscription-inactive">
-                  <p className="subscription-status-text">Абонемент не активен</p>
-                  <p className="subscription-description">Купите абонемент и получайте завтрак и обед бесплатно!</p>
-                  
-                  <div className="subscription-form">
-                    <div className="form-group">
-                      <label htmlFor="days">Количество дней:</label>
+                <div className="subscription-details">
+                  <p>
+                    Осталось дней:{' '}
+                    <strong>{subscription.days_remaining}</strong>
+                  </p>
+                  <p>
+                    Действует до:{' '}
+                    <strong>
+                      {formatDate(subscription.subscription.end_date)}
+                    </strong>
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="subscription-inactive">
+                <p className="subscription-status-text">
+                  Абонемент не активен
+                </p>
+                <p className="subscription-description">
+                  Купите абонемент и получайте завтрак и обед бесплатно!
+                </p>
+
+                <div className="subscription-form subscription-form--flat">
+                  <div className="form-group">
+                    <label htmlFor="days">Количество дней</label>
+                    <div className="subscription-buttons">
                       <button
+                        type="button"
                         onClick={() => setDaysInput('7')}
                         className="preset-days-btn"
+                        disabled={isLoading}
                       >
                         7 дней
                       </button>
                       <button
+                        type="button"
                         onClick={() => setDaysInput('30')}
                         className="preset-days-btn"
+                        disabled={isLoading}
                       >
                         30 дней
                       </button>
                     </div>
-                    <div className="price-display">
-                      <span>Стоимость: </span>
-                      <strong>{parseInt(daysInput || 0) * SUBSCRIPTION_PRICE_PER_DAY} ₽</strong>
-                      <span> ({SUBSCRIPTION_PRICE_PER_DAY} ₽/день)</span>
-                    </div>
-                    <button
-                      onClick={handleBuySubscription}
-                      className="buy-subscription-btn"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? 'Обработка...' : 'Купить абонемент'}
-                    </button>
                   </div>
+
+                  <div className="price-display">
+                    <span>Стоимость: </span>
+                    <strong>
+                      {parseInt(daysInput || 0) * SUBSCRIPTION_PRICE_PER_DAY} ₽
+                    </strong>
+                    <span> ({SUBSCRIPTION_PRICE_PER_DAY} ₽/день)</span>
+                  </div>
+
+                  <button
+                    onClick={handleBuySubscription}
+                    className="buy-subscription-btn"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Обработка...' : 'Купить абонемент'}
+                  </button>
                 </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
