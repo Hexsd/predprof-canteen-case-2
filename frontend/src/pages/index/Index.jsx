@@ -201,7 +201,7 @@ export default function Index() {
             </div>
           ) : (
             <div className="subscription-reminder">
-              Купите абонемент и получайте приемы пищи бесплатно!
+              Купите абонемент и получайте завтрак и обед бесплатно!
             </div>
           )}
         </div>

@@ -115,7 +115,7 @@ export default function UserLayout() {
               {subscriptionActive && subscription.subscription ? (
                 <div className="subscription-active">
                   <div className="subscription-status">
-                    Абонемент активен
+                    Активен
                   </div>
                   <div className="subscription-details">
                     <p>Осталось дней: <strong>{subscription.days_remaining}</strong></p>
