@@ -1244,3 +1244,28 @@ input[type="text"]:focus {
   cursor: not-allowed;
   opacity: 0.6;
 }
+
+
+.balance-up{
+  text-align: left;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
+  margin-top: var(--spacing-2xl);
+  padding-top: var(--spacing-2xl);
+  margin-bottom: var(--spacing-md);
+  border-top: 2px solid var(--color-border-light);
+  display: block;
+}
+
+.btn-balance-up {
+  margin-top: var(--spacing-lg);
+  margin-left: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-xl);
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  transition: background-color 0.2s;
+}

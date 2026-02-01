@@ -221,3 +221,25 @@ def get_lunch_with_subscription(
     db.commit()
     
     return {"message": "Обед отмечен", "date": date.today()}
+
+@router.post("/balance/up")
+def up_balance(
+    up_request: schemas.BalanceUpRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role != models.UserRole.student:
+        raise HTTPException(status_code=403, detail="Только студенты могут пополнять баланс")
+    
+    up_amount = up_request.amount
+    payment = models.Payment(
+        user_id=current_user.id,
+        amount=up_amount,
+        type="up_balance",
+        date=date.today()
+    )
+    db.add(payment)
+    current_user.balance += up_amount
+    db.commit()
+    db.refresh(current_user)
+    return current_user

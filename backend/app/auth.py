@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import os
 from typing import List, Optional
 from jose import JWTError, jwt
 import bcrypt
@@ -8,7 +9,7 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 from .database import get_db
 
-SECRET_KEY = "WE_LOVE_MIET"
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 1440
 

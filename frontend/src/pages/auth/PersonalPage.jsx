@@ -11,6 +11,7 @@ export default function UserLayout() {
   const [subscriptionActive, setSubscriptionActive] = useState(false)
   const [daysInput, setDaysInput] = useState('7')
   const [isLoading, setIsLoading] = useState(false)
+  const [balanceInput, setBalanceInput] = useState('')
 
   const SUBSCRIPTION_PRICE_PER_DAY = 300
 
@@ -29,7 +30,6 @@ export default function UserLayout() {
       console.error('Error fetching subscription:', error)
     }
   }
-
   const handleBuySubscription = async () => {
     if (!daysInput || parseInt(daysInput) <= 0) {
       notify('Введите корректное количество дней', 'error')
@@ -53,6 +53,25 @@ export default function UserLayout() {
       window.location.reload()
     } catch (error) {
       notify(error.response?.data?.detail || 'Ошибка при покупке', 'error')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  const handleBalanceUp = async () => {
+    if (!balanceInput || parseInt(balanceInput) <= 0) {
+      notify('Введите корректную сумму', 'error')
+      return
+    }
+
+    const amount = parseInt(balanceInput)
+    setIsLoading(true)
+    try {
+      await axios.post('/api/users/balance/up', { amount })
+      notify(`Баланс пополнен на ${amount} ₽`, 'success')
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      window.location.reload()
+    } catch (error) {
+      notify(error.response?.data?.detail || 'Ошибка при пополнении баланса', 'error')
     } finally {
       setIsLoading(false)
     }
@@ -109,7 +128,22 @@ export default function UserLayout() {
           <>
             <h3>Баланс кошелька</h3>
             <div className="user-balance">{user.balance} ₽</div>
-
+            <div className="balance-up">
+              <h3>Введите сумму для пополнения баланса</h3>
+              <input
+                id="balance"
+                type="number"
+                min="100"
+                max="10000"
+                value={balanceInput}
+                onChange={(e) => setBalanceInput(e.target.value)}
+                className="balance-input"
+                disabled={isLoading}
+                />
+              <button onClick={handleBalanceUp} className="btn-balance-up">
+                Пополнить баланс
+              </button>
+            </div>
             <div className="subscription-section">
               <h3>Абонемент</h3>
               {subscriptionActive && subscription.subscription ? (
@@ -142,16 +176,6 @@ export default function UserLayout() {
                       >
                         30 дней
                       </button>
-                      <input
-                        id="days"
-                        type="number"
-                        min="7"
-                        max="365"
-                        value={daysInput}
-                        onChange={(e) => setDaysInput(e.target.value)}
-                        className="days-input"
-                        disabled={isLoading}
-                      />
                     </div>
                     <div className="price-display">
                       <span>Стоимость: </span>

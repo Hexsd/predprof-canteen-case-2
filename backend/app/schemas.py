@@ -112,3 +112,6 @@ class SubscriptionResponse(BaseModel):
     subscription: Optional[Subscription] = None
     is_active: bool
     days_remaining: int
+
+class BalanceUpRequest(BaseModel):
+    amount: int
