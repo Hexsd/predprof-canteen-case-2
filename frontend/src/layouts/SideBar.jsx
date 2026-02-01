@@ -17,7 +17,7 @@ export default function SideBar({ isOpen = true, onToggle }) {
     ] : []),
     ...(isCook ? [
       { path: '/cook/products', label: 'Контроль продуктов', icon: '◆' },
-      { path: '/cook/menu', label: 'Управление меню', icon: '⪼' }
+      { path: '/cook/menu', label: 'Управление меню', icon: '☰' }
     ] : [])
   ]
   
