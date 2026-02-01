@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func
-from .. import models, auth
+from sqlalchemy import func, update
+from .. import models, auth, schemas
 from ..database import get_db
 from datetime import date
-from typing import Optional
+from typing import Optional, List, Tuple
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -58,3 +58,30 @@ def get_stats(
         "givenBreakfasts": given_breakfasts,
         "givenLunches": given_lunches
     }
+
+
+@router.get('/appsas_all', response_model=List[schemas.Application])
+def get_all_applications(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_admin),
+):
+    applications = db.query(models.Application).all()
+    print(applications)
+    if not applications:
+        raise HTTPException(
+            status_code=404,
+            detail="allah akbar"
+        )
+    return applications
+
+@router.post("/apps_confirm")
+def change_all_applications(
+    applications: List[schemas.Application],
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_admin),
+):
+    for app in applications:
+        db.execute(update(models.Application).where(models.Application.id == app.id).values(status=app.status))
+    db.commit()
+    return
+

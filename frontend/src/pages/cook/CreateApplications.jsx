@@ -238,12 +238,12 @@ export default function CreateApplications() {
                                     <tr key={index}>
                                         <td>{app.date}</td>
                                         <td>
-                                            {app.list_of_products.split('#').map((productId, idx) => {
+                                            {app.list_of_products.split('#').map((productId, index) => {
                                                 const product = findposition(parseInt(productId), products);
-                                                const amount = app.amount_of_products.split('#')[idx] || 0;
-                                                const price = app.price_of_products.split('#')[idx] || 0;
+                                                const amount = app.amount_of_products.split('#')[index];
+                                                const price = app.price_of_products.split('#')[index];
                                                 return (
-                                                    <div key={idx} style={{ marginBottom: 'var(--spacing-xs)' }}>
+                                                    <div style={{ marginBottom: 'var(--spacing-xs)' }}>
                                                         {product.name} × {amount} ({price} ₽/шт.)
                                                     </div>
                                                 );

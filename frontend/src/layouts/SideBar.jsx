@@ -13,12 +13,13 @@ export default function SideBar({ isOpen = true, onToggle }) {
     { path: '/', label: 'Главная', icon: '◉' },
     ...(isAdmin ? [
       { path: '/admin/stats', label: 'Статистика', icon: '⇄' },
-      { path: '/admin/users', label: 'Пользователи', icon: '▤' }
+      { path: '/admin/users', label: 'Пользователи', icon: '▤' },
+      { path: '/admin/applications', label: 'Заявки на закупку', icon: '📦' }
     ] : []),
     ...(isCook ? [
       { path: '/cook/products', label: 'Контроль продуктов', icon: '◆' },
       { path: '/cook/menu', label: 'Управление меню', icon: '⪼' },
-      {path: '/cook/applications', label: 'Заявки на закупку', icon: '📦'}
+      { path: '/cook/applications', label: 'Заявки на закупку', icon: '📦' }
     ] : [])
   ]
   

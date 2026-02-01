@@ -221,7 +221,7 @@ export default function Menu() {
                             <input
                                 type="checkbox"
                                 checked={considerCookedMeals}
-                                onChange={(e) => setCCM(e.target.checked)} // Исправлено: было e.target.value
+                                onChange={(e) => setCCM(e.target.checked)}
                                 style={{ marginRight: '8px', width: 'auto' }}
                             />
                             Учитывать уже приготовленные блюда
