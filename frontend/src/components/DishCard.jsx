@@ -11,7 +11,7 @@ export default function DishCard({ dish }) {
           <img src={dish.image} alt={dish.name} className="dish-image" />
         ) : (
           <div className="dish-image-placeholder">
-            <span className="placeholder-icon">:D</span>
+            <span className="placeholder-icon">🍴</span>
           </div>
         )}
       </div>

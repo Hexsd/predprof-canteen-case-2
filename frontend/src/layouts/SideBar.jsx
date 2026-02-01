@@ -57,6 +57,10 @@ export default function SideBar({ isOpen = true, onToggle }) {
           ))}
         </ul>
       </nav>
+      <div className="sidebar-footer">
+        <p>&copy; 2026 Клуб Романтики the best team</p>
+        <p>Все права защищены</p>
+      </div>
     </aside>
   )
 }

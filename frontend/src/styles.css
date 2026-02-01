@@ -189,6 +189,25 @@ a {
   color: white;
 }
 
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.sidebar-footer p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.sidebar.collapsed .sidebar-footer {
+  padding: var(--spacing-xl) var(--spacing-sm);
+  font-size: 11px;
+}
+
 .main-content {
   flex: 1;
   display: flex;
@@ -253,7 +272,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  background: var(--color-primary);
 }
 
 .auth-box {
@@ -321,7 +340,9 @@ input[type="text"]:focus {
   border-color: var(--color-primary);
   box-shadow: var(--shadow-focus);
 }
-
+.react-datepicker__current-month {
+  margin-bottom: 20px;
+}
 .form-button {
   padding: var(--spacing-lg);
   background: var(--color-primary);
@@ -1456,4 +1477,12 @@ input[type="text"]:focus {
   .balance-input-row {
     flex-direction: column;
   }
+}
+
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.react-datepicker__input-container input {
+  width: 100%;
 }

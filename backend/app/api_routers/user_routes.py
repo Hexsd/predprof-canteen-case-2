@@ -116,7 +116,7 @@ def buy_subscription(
     if current_user.role != models.UserRole.student:
         raise HTTPException(status_code=403, detail="Только студенты могут покупать абонемент")
     
-    SUBSCRIPTION_PRICE_PER_DAY = 50
+    SUBSCRIPTION_PRICE_PER_DAY = 300
     total_price = sub_data.days * SUBSCRIPTION_PRICE_PER_DAY
     
     if current_user.balance < total_price:

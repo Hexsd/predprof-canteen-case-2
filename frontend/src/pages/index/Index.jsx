@@ -191,17 +191,10 @@ export default function Index() {
       
       {user?.role === 'student' && (
         <div className="index-info-section">
-          <div className="user-balance-display">
-            Ваш баланс: <strong>{user.balance} ₽</strong>
-          </div>
-          {subscriptionActive && subscription ? (
+          {subscriptionActive && subscription && (
             <div className="subscription-banner">
               <span className="subscription-badge">Абонемент активен</span>
               <span className="subscription-days">Осталось {subscription.days_remaining} дней</span>
-            </div>
-          ) : (
-            <div className="subscription-reminder">
-              Купите абонемент и получайте завтрак и обед бесплатно!
             </div>
           )}
         </div>
