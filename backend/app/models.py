@@ -69,3 +69,15 @@ class Subscription(Base):
     days = Column(Integer)
     start_date = Column(Date)
     end_date = Column(Date, index=True)
+
+
+class Application(Base):
+    __tablename__ = "applications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    date = Column(Date)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    list_of_products = Column(String)
+    amount_of_products=Column(String)
+    price_of_products=Column(String)
+    status = Column(String)

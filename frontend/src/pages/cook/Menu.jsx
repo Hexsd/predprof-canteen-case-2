@@ -24,15 +24,18 @@ export default function Menu() {
     const { notify } = useNotification()
     
     const [portions, setPortions] = useState(1);
+    const [usedProducts, setUsedProducts] = useState({});
+    const [considerCookedMeals, setCCM] = useState(true);
 
     const fetchAll = async () => {
             try {
-              const response = await axios.get('/api/cook/all');
-              setDishes(response.data[0]);
-              setProducts(response.data[1]);
-              setAlergens(response.data[2]);
+                const response = await axios.get('/api/cook/all');
+                setDishes(response.data[0]);
+                setProducts(response.data[1]);
+                setAlergens(response.data[2]);
+                
             } catch (error) {
-              console.error('Error fetching products and dishes:', error);
+                console.error('Error fetching products and dishes:', error);
             }
         }
 
@@ -40,7 +43,16 @@ export default function Menu() {
         {
             fetchAll();
         },[])
-
+    
+    useEffect(() => {
+        console.log(products);
+        let dict = {};
+        products.forEach(element => {
+            dict[element.id]=0;
+        })
+        setUsedProducts(dict);
+        console.log(dict);
+    },[menu])
     const fetchByDate = async (e) => {
         e.preventDefault();
         try {
@@ -101,7 +113,7 @@ export default function Menu() {
                 elem = element
             }
         });
-        console.log(elem);
+        //console.log(elem);
         return elem
     }
 
@@ -190,48 +202,130 @@ export default function Menu() {
                 <button onClick={confirmMenu} className="save-button">
                     Сохранить изменения
                 </button>
-                {menu.breakfast!="" && menu.lunch!="" && (
-                    <div>
-                        <p>На сколько порций вы хотите рассчитать меню?</p>
-                        <input
+                {menu.breakfast !== "" && menu.lunch !== "" && (
+                    <>
+                        <h3>Расчет продуктов</h3>
+                        <div className="form-group-inline">
+                        <div className="form-group">
+                            <label className="form-label">Количество порций</label>
+                            <input
                             type="number"
                             value={portions}
                             onChange={(e) => setPortions(e.target.value)}
-                        />
-                        <table>
-                            <tr>
-                                <th>Блюдо</th>
-                                <th>Сколько блюд будет израсходовано</th>
-                                <th>Сколько блюд не хватает</th>
-                                <th>Сколько продуктов будет израсходовано</th>
-                                <th>Сколько продуктов не хватает</th>
-                            </tr>
-                            {Array.from(new Set((menu.breakfast+'#'+menu.lunch).split('#'))).map((item, index) => {
-                                const dish=findposition(parseInt(item), dishes);
+                            className="form-input"
+                            min="1"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label" style={{ display: 'flex', alignItems: 'center' }}>
+                            <input
+                                type="checkbox"
+                                checked={considerCookedMeals}
+                                onChange={(e) => setCCM(e.target.checked)} // Исправлено: было e.target.value
+                                style={{ marginRight: '8px', width: 'auto' }}
+                            />
+                            Учитывать уже приготовленные блюда
+                            </label>
+                        </div>
+                        </div>
 
-                                const k = (menu.breakfast+'#'+menu.lunch).split('#').filter(m => m==item).length
+                        {(() => {
+                        let dict = { ...usedProducts };
 
-                                return (
-                                    <tr>
-                                        <th>{dish.name}</th>
-                                        <th>{portions*k}</th>
-                                        <th>{portions*k-dish.amount>0 ? portions*k-dish.amount : "Блюд хватает"}</th>
-                                        <th>{portions*k-dish.amount<=0 ? "Блюда уже укомплектованы" : dish.products.split('#').map((iitem) => {const product=findposition(parseInt(iitem), products); return(<p>{product.name}: {portions*k-dish.amount}</p>)})}</th>
-                                        <th>{portions*k-dish.amount<=0 ? "Блюда уже укомплектованы" : dish.products.split('#').map((iitem) => {
+                        return (
+                            <>
+                            <h4>Потребление блюд</h4>
+                            <table className="cook-table">
+                                <thead>
+                                <tr>
+                                    <th>Блюдо</th>
+                                    <th>Количество порций</th>
+                                    <th>Необходимо приготовить</th>
+                                    <th>Требуемые продукты (на нехватку)</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {Array.from(new Set((menu.breakfast + '#' + menu.lunch).split('#'))).map((item, index) => {
+                                    const dish = findposition(parseInt(item), dishes);
+                                    const k = (menu.breakfast + '#' + menu.lunch).split('#').filter(m => m == item).length;
+                                    const dishesNeeded = portions * k - dish.amount;
 
-                                            const product=findposition(parseInt(iitem), products)
-                                            return (<p>{product.name}: {(portions*k-dish.amount)-product.amount>0 ? (portions*k-dish.amount)-product.amount : "Продуктов хватает"}</p>)
-                                        })}</th>
+                                    return (
+                                    <tr key={index}>
+                                        <td>{dish.name}</td>
+                                        <td>{portions * k}</td>
+                                        <td>
+                                        {dishesNeeded > 0 ? (
+                                            <span style={{ color: 'var(--color-error)', fontWeight: '500' }}>
+                                            {dishesNeeded}
+                                            </span>
+                                        ) : (
+                                            <span style={{ color: 'var(--color-success)', fontWeight: '500' }}>
+                                            Блюд хватает
+                                            </span>
+                                        )}
+                                        </td>
+                                        <td>
+                                        {dishesNeeded <= 0 ? (
+                                            "Блюда уже укомплектованы"
+                                        ) : (
+                                            <div>
+                                            {dish.products.split('#').map((prodId) => {
+                                                const product = findposition(parseInt(prodId), products);
+                                                if (dict[product.id] !== undefined) {
+                                                dict[product.id] += dishesNeeded;
+                                                }
+                                                return (
+                                                <div key={prodId} style={{ marginBottom: '4px' }}>
+                                                    {product.name}: {dishesNeeded}
+                                                </div>
+                                                );
+                                            })}
+                                            </div>
+                                        )}
+                                        </td>
                                     </tr>
-                                )
-                                
-                                
-                                
-                            }
-                            )}
-                        </table>
-                    </div>
-                )}
+                                    );
+                                })}
+                                </tbody>
+                            </table>
+
+                            <h4>Итоговый расчет продуктов</h4>
+                            <table className="cook-table">
+                                <thead>
+                                <tr>
+                                    <th>Продукт</th>
+                                    <th>Необходимо закупить</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {Object.entries(dict).map(([key, value]) => {
+                                    const product = findposition(key, products);
+                                    const needed = value - product.amount;
+                                    return (
+                                    <tr key={key}>
+                                        <td>{product.name}</td>
+                                        <td>
+                                        {needed > 0 ? (
+                                            <span style={{ color: 'var(--color-error)', fontWeight: '500' }}>
+                                            {needed}
+                                            </span>
+                                        ) : (
+                                            <span style={{ color: 'var(--color-success)', fontWeight: '500' }}>
+                                            Продуктов хватает
+                                            </span>
+                                        )}
+                                        </td>
+                                    </tr>
+                                    );
+                                })}
+                                </tbody>
+                            </table>
+                            </>
+                        );
+                        })()}
+                    </>
+                    )}
             </div>
         )}
     </div>)

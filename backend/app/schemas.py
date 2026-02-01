@@ -112,3 +112,19 @@ class SubscriptionResponse(BaseModel):
     subscription: Optional[Subscription] = None
     is_active: bool
     days_remaining: int
+
+
+class Application(BaseModel):
+    id: int
+    date: date
+    user_id: int
+    list_of_products: str
+    amount_of_products: str
+    price_of_products: str
+    status: str
+
+
+class ApplicationCreate(BaseModel):
+    list_of_products: str
+    amount_of_products: str
+    price_of_products: str

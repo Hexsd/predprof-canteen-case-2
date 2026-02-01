@@ -5,6 +5,7 @@ from typing import List, Tuple
 from .. import models, schemas, auth
 from ..database import get_db
 from datetime import datetime
+from datetime import date as DATE
 
 router = APIRouter(prefix="/api/cook", tags=["cook"])
 
@@ -18,7 +19,10 @@ def get_all(
     alergens = db.query(models.Alergen).all()
     menu = db.query(models.Menu).all()
     if not dishes and not products and not alergens and not menu:
-        return HTTPException("nothing there")
+        raise HTTPException(
+            status_code=404,
+            detail="Item not found"
+        )
     return dishes, products, alergens, menu
 
 @router.post("/change")
@@ -97,3 +101,28 @@ def new_menu(
         db.add(models.Menu(date=menu.date, breakfast=menu.breakfast, given_breakfasts=0, lunch=menu.lunch, given_lunches=0))
     db.commit()
     return
+
+
+@router.post("/new_application")
+def new_application(
+    application: schemas.ApplicationCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    print(application)
+    db.add(models.Application(date=DATE.today(), user_id=current_user.id, list_of_products=application.list_of_products, amount_of_products=application.amount_of_products, price_of_products=application.price_of_products,status="На рассмотрении"))
+    db.commit()
+    return
+
+@router.get("/my_apps", response_model=List[schemas.Application])
+def my_apps(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    applications = db.query(models.Application).filter(models.Application.user_id==current_user.id).all()
+    if not applications:
+        raise HTTPException(
+            status_code=404,
+            detail="Item not found"
+        )
+    return applications
