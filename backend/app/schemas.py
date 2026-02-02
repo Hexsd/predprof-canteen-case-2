@@ -115,3 +115,18 @@ class SubscriptionResponse(BaseModel):
 
 class BalanceUpRequest(BaseModel):
     amount: int
+
+class Application(BaseModel):
+    id: int
+    date: date
+    user_id: int
+    list_of_products: str
+    amount_of_products: str
+    price_of_products: str
+    status: str
+
+
+class ApplicationCreate(BaseModel):
+    list_of_products: str
+    amount_of_products: str
+    price_of_products: str
