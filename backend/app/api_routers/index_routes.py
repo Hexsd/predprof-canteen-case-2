@@ -8,6 +8,13 @@ from datetime import *
 
 router = APIRouter(prefix="/api/index", tags=["index"])
 
+@router.get("/dishes", response_model=List[schemas.Dish])
+def get_all_dishes(
+    db: Session = Depends(get_db)
+):
+    dishes = db.query(models.Dish).all()
+    return dishes
+
 @router.get("", response_model=schemas.Menu)
 def get_index(
     db: Session = Depends(get_db),

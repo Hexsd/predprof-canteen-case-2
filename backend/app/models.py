@@ -1,6 +1,7 @@
 import enum
-from sqlalchemy import Column, Integer, String, Date, Enum, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, Enum, ForeignKey, DateTime, Float
 from .database import Base
+from datetime import datetime
 
 class UserRole(str, enum.Enum):
     student="student"
@@ -81,3 +82,36 @@ class Application(Base):
     amount_of_products=Column(String)
     price_of_products=Column(String)
     status = Column(String)
+
+
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    dish_id = Column(Integer, ForeignKey("dish.id"), index=True)
+    rating = Column(Integer)
+    text = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+
+class MealRecord(Base):
+    __tablename__ = "meal_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    date = Column(Date, index=True)
+    breakfast = Column(String)
+    lunch = Column(String)
+
+
+class MealHistory(Base):
+    __tablename__ = "meal_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    meal_type = Column(String)
+    date = Column(Date, index=True)
+    source = Column(String)
+    dishes = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)

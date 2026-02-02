@@ -130,3 +130,33 @@ class ApplicationCreate(BaseModel):
     list_of_products: str
     amount_of_products: str
     price_of_products: str
+
+class ReviewCreate(BaseModel):
+    dish_id: int
+    rating: int
+    text: Optional[str] = None
+
+
+class ReviewResponse(BaseModel):
+    id: int
+    user_id: int
+    dish_id: int
+    rating: int
+    text: Optional[str]
+    created_at: str
+    username: str
+
+    class Config:
+        from_attributes = True
+
+
+class ReviewStats(BaseModel):
+    average_rating: float
+    count: int
+
+
+class BuyMealResponse(BaseModel):
+    user: User
+    meal_type: str
+    breakfast_dishes: Optional[List[str]] = None
+    lunch_dishes: Optional[List[str]] = None

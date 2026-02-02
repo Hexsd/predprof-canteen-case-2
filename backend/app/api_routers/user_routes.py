@@ -45,7 +45,7 @@ def update_user_role(
     
     return user
 
-@router.post("/buy/breakfast", response_model=schemas.User)
+@router.post("/buy/breakfast", response_model=schemas.BuyMealResponse)
 def buy_breakfast(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
@@ -70,13 +70,45 @@ def buy_breakfast(
     menu = db.query(models.Menu).filter(models.Menu.date == date.today()).first()
     if menu:
         menu.given_breakfasts += 1
+        breakfast_dishes = menu.breakfast.split('#') if menu.breakfast else []
+    else:
+        breakfast_dishes = []
+    
+    meal_record = db.query(models.MealRecord).filter(
+        models.MealRecord.user_id == current_user.id,
+        models.MealRecord.date == date.today()
+    ).first()
+    
+    if not meal_record:
+        meal_record = models.MealRecord(
+            user_id=current_user.id,
+            date=date.today(),
+            breakfast="completed",
+            lunch=None
+        )
+        db.add(meal_record)
+    else:
+        meal_record.breakfast = "completed"
+    
+    meal_history = models.MealHistory(
+        user_id=current_user.id,
+        meal_type="breakfast",
+        date=date.today(),
+        source="purchased",
+        dishes="#".join(str(d) for d in breakfast_dishes)
+    )
+    db.add(meal_history)
     
     db.commit()
     db.refresh(current_user)
     
-    return current_user
+    return {
+        "user": current_user,
+        "meal_type": "breakfast",
+        "breakfast_dishes": breakfast_dishes
+    }
 
-@router.post("/buy/lunch", response_model=schemas.User)
+@router.post("/buy/lunch", response_model=schemas.BuyMealResponse)
 def buy_lunch(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
@@ -101,11 +133,43 @@ def buy_lunch(
     menu = db.query(models.Menu).filter(models.Menu.date == date.today()).first()
     if menu:
         menu.given_lunches += 1
+        lunch_dishes = menu.lunch.split('#') if menu.lunch else []
+    else:
+        lunch_dishes = []
+    
+    meal_record = db.query(models.MealRecord).filter(
+        models.MealRecord.user_id == current_user.id,
+        models.MealRecord.date == date.today()
+    ).first()
+    
+    if not meal_record:
+        meal_record = models.MealRecord(
+            user_id=current_user.id,
+            date=date.today(),
+            breakfast=None,
+            lunch="completed"
+        )
+        db.add(meal_record)
+    else:
+        meal_record.lunch = "completed"
+    
+    meal_history = models.MealHistory(
+        user_id=current_user.id,
+        meal_type="lunch",
+        date=date.today(),
+        source="purchased",
+        dishes="#".join(str(d) for d in lunch_dishes)
+    )
+    db.add(meal_history)
     
     db.commit()
     db.refresh(current_user)
     
-    return current_user
+    return {
+        "user": current_user,
+        "meal_type": "lunch",
+        "lunch_dishes": lunch_dishes
+    }
 
 @router.post("/subscription/buy", response_model=schemas.Subscription)
 def buy_subscription(
@@ -122,7 +186,6 @@ def buy_subscription(
     if current_user.balance < total_price:
         raise HTTPException(status_code=400, detail="Недостаточно средств")
     
-    # Удалить старый абонемент, если он есть
     old_subscription = db.query(models.Subscription).filter(
         models.Subscription.user_id == current_user.id
     ).first()
@@ -191,13 +254,51 @@ def get_breakfast_with_subscription(
     if not subscription or subscription.end_date < date.today():
         raise HTTPException(status_code=400, detail="Абонемент не активен")
     
+    meal_record = db.query(models.MealRecord).filter(
+        models.MealRecord.user_id == current_user.id,
+        models.MealRecord.date == date.today()
+    ).first()
+    
+    if meal_record:
+        if meal_record.breakfast and meal_record.breakfast in ["pending", "completed"]:
+            raise HTTPException(status_code=400, detail="Завтрак уже получен на сегодня")
+        meal_record.breakfast = "completed"
+    else:
+        meal_record = models.MealRecord(
+            user_id=current_user.id,
+            date=date.today(),
+            breakfast="completed",
+            lunch=None
+        )
+        db.add(meal_record)
+    
     menu = db.query(models.Menu).filter(models.Menu.date == date.today()).first()
     if menu:
         menu.given_breakfasts += 1
     
     db.commit()
     
-    return {"message": "Завтрак отмечен", "date": date.today()}
+    if menu:
+        breakfast_dishes = menu.breakfast.split('#') if menu.breakfast else []
+    else:
+        breakfast_dishes = []
+    
+    meal_history = models.MealHistory(
+        user_id=current_user.id,
+        meal_type="breakfast",
+        date=date.today(),
+        source="subscription",
+        dishes="#".join(str(d) for d in breakfast_dishes)
+    )
+    db.add(meal_history)
+    db.commit()
+    
+    return {
+        "message": "Завтрак получен, оставьте отзыв",
+        "date": date.today(),
+        "meal_type": "breakfast",
+        "dishes": breakfast_dishes
+    }
 
 @router.post("/meal/lunch-with-subscription")
 def get_lunch_with_subscription(
@@ -214,13 +315,51 @@ def get_lunch_with_subscription(
     if not subscription or subscription.end_date < date.today():
         raise HTTPException(status_code=400, detail="Абонемент не активен")
     
+    meal_record = db.query(models.MealRecord).filter(
+        models.MealRecord.user_id == current_user.id,
+        models.MealRecord.date == date.today()
+    ).first()
+    
+    if meal_record:
+        if meal_record.lunch and meal_record.lunch in ["pending", "completed"]:
+            raise HTTPException(status_code=400, detail="Обед уже получен на сегодня")
+        meal_record.lunch = "completed"
+    else:
+        meal_record = models.MealRecord(
+            user_id=current_user.id,
+            date=date.today(),
+            breakfast=None,
+            lunch="completed"
+        )
+        db.add(meal_record)
+    
     menu = db.query(models.Menu).filter(models.Menu.date == date.today()).first()
     if menu:
         menu.given_lunches += 1
     
     db.commit()
     
-    return {"message": "Обед отмечен", "date": date.today()}
+    if menu:
+        lunch_dishes = menu.lunch.split('#') if menu.lunch else []
+    else:
+        lunch_dishes = []
+    
+    meal_history = models.MealHistory(
+        user_id=current_user.id,
+        meal_type="lunch",
+        date=date.today(),
+        source="subscription",
+        dishes="#".join(str(d) for d in lunch_dishes)
+    )
+    db.add(meal_history)
+    db.commit()
+    
+    return {
+        "message": "Обед получен, оставьте отзыв",
+        "date": date.today(),
+        "meal_type": "lunch",
+        "dishes": lunch_dishes
+    }
 
 @router.post("/balance/up")
 def up_balance(
@@ -243,3 +382,44 @@ def up_balance(
     db.commit()
     db.refresh(current_user)
     return current_user
+
+@router.get("/meal/status")
+def get_meal_status(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    meal_record = db.query(models.MealRecord).filter(
+        models.MealRecord.user_id == current_user.id,
+        models.MealRecord.date == date.today()
+    ).first()
+    
+    return {
+        "breakfast_status": meal_record.breakfast if meal_record else None,
+        "lunch_status": meal_record.lunch if meal_record else None
+    }
+
+
+@router.get("/meal/history")
+def get_meal_history(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+    limit: int = 50
+):
+    history = db.query(models.MealHistory).filter(
+        models.MealHistory.user_id == current_user.id
+    ).order_by(
+        models.MealHistory.created_at.desc()
+    ).limit(limit).all()
+    
+    result = []
+    for record in history:
+        result.append({
+            "id": record.id,
+            "meal_type": record.meal_type,
+            "date": record.date.isoformat(),
+            "source": record.source,
+            "dishes": record.dishes.split('#') if record.dishes else [],
+            "created_at": record.created_at.isoformat()
+        })
+    
+    return result

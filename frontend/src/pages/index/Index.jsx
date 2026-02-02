@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useAuth } from '../auth/AuthContext'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useNotification } from '../../hooks/useNotification'
 import DishCard from '../../components/DishCard'
 
@@ -18,6 +19,8 @@ export default function Index() {
   const [weekStart, setWeekStart] = useState(getMondayOfWeek(today))
   const { user } = useAuth()
   const { notify } = useNotification()
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const BREAKFAST_PRICE = 150
   const LUNCH_PRICE = 300
@@ -28,6 +31,9 @@ export default function Index() {
   const [alergens, setAlergens] = useState([])
   const [subscription, setSubscription] = useState(null)
   const [subscriptionActive, setSubscriptionActive] = useState(false)
+  const [mealStatus, setMealStatus] = useState({ breakfast_status: null, lunch_status: null })
+  const [breakfastSource, setBreakfastSource] = useState(null)
+  const [lunchSource, setLunchSource] = useState(null)
 
   const fetchMenu = async (date) => {
     try {
@@ -62,13 +68,49 @@ export default function Index() {
     }
   }
 
+  const fetchMealStatus = async () => {
+    try {
+      const response = await axios.get('/api/users/meal/status')
+      setMealStatus(response.data)
+      
+
+      const historyResponse = await axios.get('/api/users/meal/history?limit=10')
+      const history = historyResponse.data
+      
+      const today = new Date().toISOString().split('T')[0]
+      const breakfastEntries = history.filter(h => h.meal_type === 'breakfast' && h.date.startsWith(today))
+      const lunchEntries = history.filter(h => h.meal_type === 'lunch' && h.date.startsWith(today))
+      
+      if (breakfastEntries.length > 0) {
+        setBreakfastSource(breakfastEntries[0].source)
+      } else {
+        setBreakfastSource(null)
+      }
+      
+      if (lunchEntries.length > 0) {
+        setLunchSource(lunchEntries[0].source)
+      } else {
+        setLunchSource(null)
+      }
+    } catch (error) {
+      console.error('Error fetching meal status:', error)
+    }
+  }
+
   useEffect(() => {
     fetchMenu(selectedDate);
     fetchAll();
     if (user?.role === 'student') {
       fetchSubscriptionStatus()
+      fetchMealStatus()
     }
   }, [selectedDate])
+
+  useEffect(() => {
+    if (user?.role === 'student') {
+      fetchMealStatus()
+    }
+  }, [user, location.key])
 
   const getWeekDates = (weekStart) => {
     const dates = [];
@@ -123,9 +165,15 @@ export default function Index() {
 
     try {
       const response = await axios.post('/api/users/buy/breakfast')
-      notify(`Завтрак куплен! Баланс: ${response.data.balance} ₽`, 'success')
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      window.location.reload()
+      notify(`Завтрак куплен! Баланс: ${response.data.user.balance} ₽`, 'success')
+      
+      const breakfastDishes = response.data.breakfast_dishes || []
+      navigate('/review', {
+        state: {
+          meal_type: 'breakfast',
+          dishes: breakfastDishes
+        }
+      })
     } catch (error) {
       notify(error.response?.data?.detail || 'Ошибка при покупке', 'error')
     }
@@ -133,9 +181,18 @@ export default function Index() {
 
   const handleGetBreakfastWithSubscription = async () => {
     try {
-      await axios.post('/api/users/meal/breakfast-with-subscription')
-      notify('Завтрак отмечен!', 'success')
-      fetchSubscriptionStatus()
+      const response = await axios.post('/api/users/meal/breakfast-with-subscription')
+      const mealType = response.data.meal_type
+      const dishes = response.data.dishes || []
+      
+      notify('Завтрак получен! Оставьте отзыв', 'success')
+      
+      navigate('/review', {
+        state: {
+          meal_type: mealType,
+          dishes: dishes
+        }
+      })
     } catch (error) {
       notify(error.response?.data?.detail || 'Ошибка при отметке', 'error')
     }
@@ -155,9 +212,15 @@ export default function Index() {
 
     try {
       const response = await axios.post('/api/users/buy/lunch')
-      notify(`Обед куплен! Баланс: ${response.data.balance} ₽`, 'success')
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      window.location.reload()
+      notify(`Обед куплен! Баланс: ${response.data.user.balance} ₽`, 'success')
+      
+      const lunchDishes = response.data.lunch_dishes || []
+      navigate('/review', {
+        state: {
+          meal_type: 'lunch',
+          dishes: lunchDishes
+        }
+      })
     } catch (error) {
       notify(error.response?.data?.detail || 'Ошибка при покупке', 'error')
     }
@@ -165,9 +228,18 @@ export default function Index() {
 
   const handleGetLunchWithSubscription = async () => {
     try {
-      await axios.post('/api/users/meal/lunch-with-subscription')
-      notify('Обед отмечен!', 'success')
-      fetchSubscriptionStatus()
+      const response = await axios.post('/api/users/meal/lunch-with-subscription')
+      const mealType = response.data.meal_type
+      const dishes = response.data.dishes || []
+      
+      notify('Обед получен! Оставьте отзыв', 'success')
+      
+      navigate('/review', {
+        state: {
+          meal_type: mealType,
+          dishes: dishes
+        }
+      })
     } catch (error) {
       notify(error.response?.data?.detail || 'Ошибка при отметке', 'error')
     }
@@ -191,6 +263,13 @@ export default function Index() {
       
       {user?.role === 'student' && (
         <div className="index-info-section">
+          <button 
+            onClick={() => navigate('/history')}
+            className="history-btn"
+            title="Посмотреть историю покупок"
+          >
+            История покупок
+          </button>
           {subscriptionActive && subscription && (
             <div className="subscription-banner">
               <span className="subscription-badge">Абонемент активен</span>
@@ -249,11 +328,11 @@ export default function Index() {
               </div>
             </div>
             <button
-              onClick={subscriptionActive ? handleGetBreakfastWithSubscription : handleBuyBreakfast}
+              onClick={subscriptionActive && !breakfastSource ? handleGetBreakfastWithSubscription : handleBuyBreakfast}
               className={`meal-buy-btn ${(!user || user.role !== 'student') ? 'disabled' : ''}`}
               disabled={!user || user.role !== 'student'}
             >
-              {subscriptionActive ? 'Получить завтрак' : `Купить завтрак - ${BREAKFAST_PRICE} ₽`}
+              {subscriptionActive && !breakfastSource ? 'Получить завтрак' : `Купить завтрак - ${BREAKFAST_PRICE} ₽`}
             </button>
           </div>
 
@@ -274,11 +353,11 @@ export default function Index() {
               </div>
             </div>
             <button
-              onClick={subscriptionActive ? handleGetLunchWithSubscription : handleBuyLunch}
+              onClick={subscriptionActive && !lunchSource ? handleGetLunchWithSubscription : handleBuyLunch}
               className={`meal-buy-btn ${(!user || user.role !== 'student') ? 'disabled' : ''}`}
               disabled={!user || user.role !== 'student'}
             >
-              {subscriptionActive ? 'Получить обед' : `Купить обед - ${LUNCH_PRICE} ₽`}
+              {subscriptionActive && !lunchSource ? 'Получить обед' : `Купить обед - ${LUNCH_PRICE} ₽`}
             </button>
           </div>
         </div>
