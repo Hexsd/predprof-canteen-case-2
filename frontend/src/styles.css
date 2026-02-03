@@ -1798,7 +1798,7 @@ input[type="text"]:focus {
   width: 100%;
   margin-top: var(--spacing-md);
   padding: var(--spacing-sm) var(--spacing-md);
-  background-color: var(--color-secondary);
+  background-color: var(--color-primary);
   color: var(--color-text-primary);
   border: none;
   font-size: var(--font-size-sm);
@@ -1929,7 +1929,6 @@ input[type="text"]:focus {
   background-color: var(--color-bg-white);
   color: var(--color-text-primary);
   font-size: var(--font-size-base);
-  border-left: 3px solid var(--color-secondary);
 }
 
 .btn-leave-review {
