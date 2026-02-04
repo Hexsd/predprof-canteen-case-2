@@ -71,8 +71,16 @@ def change_all_applications(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_admin),
 ):
-    for app in applications:
-        db.execute(update(models.Application).where(models.Application.id == app.id).values(status=app.status))
+    prev_applications = db.query(models.Application).all()
+    for i in range(len(applications)):
+        if applications[i].status == "Одобрена" and prev_applications[i].status != "Одобрена":
+            products = applications[i].list_of_products.split('#')
+            amounts = applications[i].amount_of_products.split('#')
+            for j in range(len(products)):
+                if db.query(models.Product).filter(models.Product.id == int(products[j])).first():
+                    db.execute(update(models.Product).where(models.Product.id == int(products[j])).values(amount=models.Product.amount+int(amounts[j])))
+
+        db.execute(update(models.Application).where(models.Application.id == applications[i].id).values(status=applications[i].status))
     db.commit()
     return
 

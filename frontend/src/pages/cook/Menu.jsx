@@ -216,17 +216,16 @@ export default function Menu() {
                             min="1"
                             />
                         </div>
-                        <div className="form-group">
-                            <label className="form-label" style={{ display: 'flex', alignItems: 'center' }}>
-                            <input
-                                type="checkbox"
-                                checked={considerCookedMeals}
-                                onChange={(e) => setCCM(e.target.checked)}
-                                style={{ marginRight: '8px', width: 'auto' }}
-                            />
-                            Учитывать уже приготовленные блюда
-                            </label>
-                        </div>
+                            <div className="form-group">
+                                    <label className="form-label">
+                                        <input
+                                            type="checkbox"
+                                            checked={considerCookedMeals}
+                                            onChange={(e) => setCCM(e.target.checked)}
+                                        />
+                                        Учитывать уже приготовленные блюда
+                                    </label>
+                            </div>
                         </div>
 
                         {(() => {
@@ -248,7 +247,9 @@ export default function Menu() {
                                 {Array.from(new Set((menu.breakfast + '#' + menu.lunch).split('#'))).map((item, index) => {
                                     const dish = findposition(parseInt(item), dishes);
                                     const k = (menu.breakfast + '#' + menu.lunch).split('#').filter(m => m == item).length;
-                                    const dishesNeeded = portions * k - dish.amount;
+                                    let dish_amount = considerCookedMeals ? dish.amount : 0
+                                    console.log(considerCookedMeals);
+                                    const dishesNeeded = portions * k - dish_amount;
 
                                     return (
                                     <tr key={index}>
@@ -310,9 +311,13 @@ export default function Menu() {
                                             <span style={{ color: 'var(--color-error)', fontWeight: '500' }}>
                                             {needed}
                                             </span>
-                                        ) : (
+                                        ) : value > 0 ? (
                                             <span style={{ color: 'var(--color-success)', fontWeight: '500' }}>
                                             Продуктов хватает
+                                            </span>
+                                        ) : (
+                                            <span style={{ color: 'var(--color-success)', fontWeight: '500' }}>
+                                            Продукты затрачены не будут
                                             </span>
                                         )}
                                         </td>
