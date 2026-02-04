@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from datetime import date
-from .models import UserRole, ProductType
-from typing import Optional
+from .models import UserRole
+from typing import Optional, List
 class UserCreate(BaseModel):
     email: EmailStr
     name: str
@@ -18,6 +18,7 @@ class User(BaseModel):
     name: str
     birth_date: date
     role: UserRole
+    balance: int
     class Config:
         from_attributes = True
 class UserRoleUpdate(BaseModel):
@@ -44,19 +45,118 @@ class Menu(BaseModel):
 class MenuCreate(BaseModel):
     date: date
     breakfast: str
+    given_breakfasts: int
     lunch: str
+    given_lunches: int
+
+class Dish(BaseModel):
+    id: int
+    products: str
+    amount: int
+    name: str
+
+class DishCreate(BaseModel):
+    products: str
+    amount: int
+    name: str
 
 class Product(BaseModel):
     id: int
-    name: str
-    type: Optional[ProductType] = ProductType.product
+    alergens: str
     amount: int
+    name: str
 
 class ProductCreate(BaseModel):
-    name: str
-    type: Optional[ProductType] = ProductType.product
+    alergens: str
     amount: int
+    name: str
+
+class Alergen(BaseModel):
+    id: int
+    name: str
+
+class AlergenCreate(BaseModel):
+    name: str
     
 class UserPersonalPage(BaseModel):
     email: EmailStr
     name: str
+
+class Payment(BaseModel):
+    id: int
+    user_id: int
+    amount: int
+    type: str
+    date: date
+    class Config:
+        from_attributes = True
+
+class ChangeCook(BaseModel):
+    dishes: List[Dish]
+    products: List[Product]
+    alergens: List[Alergen]
+
+class Subscription(BaseModel):
+    id: int
+    user_id: int
+    days: int
+    start_date: date
+    end_date: date
+    class Config:
+        from_attributes = True
+
+class SubscriptionCreate(BaseModel):
+    days: int
+
+class SubscriptionResponse(BaseModel):
+    subscription: Optional[Subscription] = None
+    is_active: bool
+    days_remaining: int
+
+class BalanceUpRequest(BaseModel):
+    amount: int
+
+class Application(BaseModel):
+    id: int
+    date: date
+    user_id: int
+    list_of_products: str
+    amount_of_products: str
+    price_of_products: str
+    status: str
+
+
+class ApplicationCreate(BaseModel):
+    list_of_products: str
+    amount_of_products: str
+    price_of_products: str
+
+class ReviewCreate(BaseModel):
+    dish_id: int
+    rating: int
+    text: Optional[str] = None
+
+
+class ReviewResponse(BaseModel):
+    id: int
+    user_id: int
+    dish_id: int
+    rating: int
+    text: Optional[str]
+    created_at: str
+    username: str
+
+    class Config:
+        from_attributes = True
+
+
+class ReviewStats(BaseModel):
+    average_rating: float
+    count: int
+
+
+class BuyMealResponse(BaseModel):
+    user: User
+    meal_type: str
+    breakfast_dishes: Optional[List[str]] = None
+    lunch_dishes: Optional[List[str]] = None
