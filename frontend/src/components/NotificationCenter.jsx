@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../pages/auth/AuthContext'
 import notificationCenter from '../hooks/useNotification'
+import logger from '../utils/logger'
+import '../styles/notification-center.css'
 
 export default function NotificationCenter() {
   const [notifications, setNotifications] = useState([])
@@ -8,17 +10,20 @@ export default function NotificationCenter() {
   const ws = React.useRef(null)
   const reconnectAttempts = React.useRef(0)
   const maxReconnectAttempts = 5
+  const reconnectTimeout = React.useRef(null)
 
   const connectWebSocket = () => {
     if (!token) return
+    if (ws.current && (ws.current.readyState === WebSocket.OPEN || ws.current.readyState === WebSocket.CONNECTING)) {
+      return
+    }
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const wsUrl = `${protocol}//${window.location.host}/api/ws?token=${token}`
-    
+    const wsUrl = `${protocol}//${window.location.host}/api/ws?token=${encodeURIComponent(token)}`
+
     ws.current = new WebSocket(wsUrl)
 
     ws.current.onopen = () => {
-      console.log('WebSocket connected')
       reconnectAttempts.current = 0
     }
 
@@ -27,30 +32,37 @@ export default function NotificationCenter() {
         const data = JSON.parse(event.data)
         addNotification(data.message, data.type || 'info')
       } catch (error) {
-        console.error('Error parsing WebSocket message:', error)
+        logger.error('Error parsing WebSocket message:', error)
       }
     }
 
     ws.current.onerror = (error) => {
-      console.error('WebSocket error:', error)
+      logger.error('WebSocket error:', error)
     }
 
     ws.current.onclose = () => {
-      console.log('WebSocket disconnected')
       if (reconnectAttempts.current < maxReconnectAttempts) {
         reconnectAttempts.current += 1
         const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 10000)
-        setTimeout(connectWebSocket, delay)
+        reconnectTimeout.current = setTimeout(connectWebSocket, delay)
       }
     }
   }
 
   useEffect(() => {
     connectWebSocket()
-    
+
     return () => {
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current)
+      }
       if (ws.current) {
-        ws.current.close()
+        try {
+          ws.current.close()
+        } catch (e) {
+          // ignore
+        }
+        ws.current = null
       }
     }
   }, [token])
@@ -62,14 +74,14 @@ export default function NotificationCenter() {
     return unsubscribe
   }, [])
 
-  const addNotification = (message, type) => {
+  const addNotification = useCallback((message, type) => {
     const id = Date.now()
     setNotifications(prev => [...prev, { id, message, type }])
-    
+
     setTimeout(() => {
       removeNotification(id)
     }, 5000)
-  }
+  }, [])
 
   const removeNotification = (id) => {
     setNotifications(prev => prev.filter(n => n.id !== id))
@@ -77,8 +89,7 @@ export default function NotificationCenter() {
 
   const getStyle = (type) => {
     const baseStyle = {
-      padding: '12px 16px',
-      borderRadius: '4px',
+      padding: '20px 30px',
       marginBottom: '8px',
       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
       fontSize: '14px',
@@ -99,39 +110,12 @@ export default function NotificationCenter() {
 
   return (
     <>
-      <style>{`
-        @keyframes slideIn {
-          from {
-            transform: translateX(400px);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        
-        @keyframes slideOut {
-          from {
-            transform: translateX(0);
-            opacity: 1;
-          }
-          to {
-            transform: translateX(400px);
-            opacity: 0;
-          }
-        }
-      `}</style>
-      <div style={{
-        position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-        zIndex: 9999,
-        pointerEvents: 'auto'
-      }}>
+      <div className="notification-center">
         {notifications.map(notification => (
-          <div key={notification.id} style={getStyle(notification.type)}>
-            {notification.message}
+          <div key={notification.id} className={`notification-item ${notification.type || 'info'}`} style={{ ['--duration']: '5000ms' }}>
+            <div className="nc-content">{notification.message}</div>
+            <button className="nc-close" aria-label="Закрыть" onClick={() => removeNotification(notification.id)}>✕</button>
+            <div className="nc-progress"><i /></div>
           </div>
         ))}
       </div>

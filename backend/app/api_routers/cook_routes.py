@@ -7,6 +7,9 @@ from ..database import get_db
 from datetime import datetime
 from datetime import date as DATE
 from .notifications_routes import send_notification
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/cook", tags=["cook"])
 
@@ -87,7 +90,7 @@ def menu(
             status_code=404,
             detail="Item not found"
         )
-    print(date)
+    logger.debug("Requested menu date: %s", date)
     return menu
 
 @router.post("/new_menu")
@@ -110,7 +113,7 @@ def new_application(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    print(application)
+    logger.debug("New application received: %s", application)
     db.add(models.Application(date=DATE.today(), user_id=current_user.id, list_of_products=application.list_of_products, amount_of_products=application.amount_of_products, price_of_products=application.price_of_products,status="На рассмотрении"))
     db.commit()
     

@@ -3,6 +3,7 @@ import axios from 'axios'
 import { useAuth } from '../auth/AuthContext'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useNotification } from '../../hooks/useNotification'
+import logger from '../../utils/logger'
 import DishCard from '../../components/DishCard'
 
 function getMondayOfWeek(date) {
@@ -45,7 +46,7 @@ export default function Index() {
       const response = await axios.get(`/api/index?date=${dateStr}`)
       setMenu(response.data)
     } catch (error) {
-      console.error('Error fetching menu:', error)
+      logger.error('Error fetching menu:', error)
       setMenu(null)
     }
   }
@@ -57,7 +58,7 @@ export default function Index() {
             setProducts(response.data[1]);
             setAlergens(response.data[2]);
           } catch (error) {
-            console.error('Error fetching products and dishes:', error);
+            logger.error('Error fetching products and dishes:', error);
           }
       }
 
@@ -67,7 +68,7 @@ export default function Index() {
       setSubscription(response.data)
       setSubscriptionActive(response.data.is_active)
     } catch (error) {
-      console.error('Error fetching subscription:', error)
+      logger.error('Error fetching subscription:', error)
       setSubscriptionActive(false)
     }
   }
@@ -97,7 +98,7 @@ export default function Index() {
         setLunchSource(null)
       }
     } catch (error) {
-      console.error('Error fetching meal status:', error)
+      logger.error('Error fetching meal status:', error)
     }
   }
 
@@ -326,7 +327,7 @@ export default function Index() {
                   Array.from(unique_dishes_br).forEach(element => {
                     unique_dishes_amounts[element]=menu.breakfast.split('#').filter(item => item==element).length;
                   });
-                  // console.log(unique_dishes_amounts);
+                  
 
                   return (
                     <>
@@ -373,7 +374,7 @@ export default function Index() {
               Array.from(unique_dishes_br).forEach(element => {
                 unique_dishes_amounts[element]=menu.lunch.split('#').filter(item => item==element).length;
               });
-              // console.log(unique_dishes_amounts);
+              
 
               return (
                 <>

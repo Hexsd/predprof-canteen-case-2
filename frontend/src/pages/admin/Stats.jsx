@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import MonthlyChart from '../../components/MonthlyChart';
+import logger from '../../utils/logger'
 
 function getMondayOfWeek(date) {
   const d = new Date(date);
@@ -38,7 +39,6 @@ export default function Stats() {
             ws = new WebSocket(wsUrl);
             
             ws.onopen = () => {
-                console.log('WebSocket connected');
             };
             
             ws.onmessage = (event) => {
@@ -57,14 +57,13 @@ export default function Stats() {
             };
             
             ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
+                logger.error('WebSocket error:', error);
             };
             
             ws.onclose = () => {
-                console.log('WebSocket disconnected');
             };
         } catch (err) {
-            console.error('Failed to connect WebSocket:', err);
+            logger.error('Failed to connect WebSocket:', err);
         }
         
         return () => {

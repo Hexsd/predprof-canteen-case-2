@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNotification } from '../../hooks/useNotification'
+import logger from '../../utils/logger'
 
 export default function ManageApplications() {
     const [dishes, setDishes] = useState([]);
@@ -22,7 +23,7 @@ export default function ManageApplications() {
             setProducts(response.data[1]);
             setAlergens(response.data[2]);
         } catch (error) {
-            console.error('Error fetching products and dishes:', error);
+            logger.error('Error fetching products and dishes:', error);
         }
     }   
 
@@ -32,7 +33,7 @@ export default function ManageApplications() {
             setApplications(response.data);
             setPrevApplications(response.data);
         } catch (error) {
-            console.error('Error fetching applications:', error);
+            logger.error('Error fetching applications:', error);
         }
     };
 
@@ -41,8 +42,8 @@ export default function ManageApplications() {
             const res = await axios.get('/api/users');
             setUsers(res.data);
         } catch (error) {
-            console.error('Error fetching users:', error);
-            console.error(error.response?.data?.detail || 'Ошибка загрузки пользователей');
+            logger.error('Error fetching users:', error);
+            logger.error(error.response?.data?.detail || 'Ошибка загрузки пользователей');
         } 
     }
     
@@ -59,7 +60,7 @@ export default function ManageApplications() {
             await fetchApps()
             notify("Изменение статуса заявок выполнено", "success");
         } catch (error) {
-            console.error('Error uploading applications:', error);
+            logger.error('Error uploading applications:', error);
         }
     };
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import ReviewsViewModal from './ReviewsViewModal'
 import { useAuth } from '../pages/auth/AuthContext'
+import logger from '../utils/logger'
 
 export default function DishCard({ dish, products = [] }) {
   const [rating, setRating] = useState(0)
@@ -19,7 +20,7 @@ export default function DishCard({ dish, products = [] }) {
         setRating(response.data.average_rating || 0)
         setReviewCount(response.data.count || 0)
       } catch (error) {
-        console.error('Error fetching rating:', error)
+        logger.error('Error fetching rating:', error)
         setRating(0)
         setReviewCount(0)
       } finally {

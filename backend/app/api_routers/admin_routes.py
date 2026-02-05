@@ -11,6 +11,9 @@ import csv
 import io
 from calendar import monthrange
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ConnectionManager:
     def __init__(self):
@@ -230,11 +233,11 @@ def get_all_applications(
     current_user: models.User = Depends(auth.get_admin),
 ):
     applications = db.query(models.Application).all()
-    print(applications)
+    logger.debug("Fetched applications count: %s", len(applications))
     if not applications:
         raise HTTPException(
             status_code=404,
-            detail="allah akbar"
+            detail="No applications found"
         )
     return applications
 
@@ -476,7 +479,7 @@ async def websocket_stats(websocket: WebSocket, db: Session = Depends(get_db)):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:
-        print(f"WebSocket error: {e}")
+        logger.exception("WebSocket error: %s", e)
         manager.disconnect(websocket)
 
 

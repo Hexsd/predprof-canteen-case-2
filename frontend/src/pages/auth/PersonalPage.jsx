@@ -3,6 +3,7 @@ import { Outlet, Navigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from './AuthContext'
 import { useNotification } from '../../hooks/useNotification'
+import logger from '../../utils/logger'
 
 export default function UserLayout() {
   const { user, logout, loading } = useAuth()
@@ -31,7 +32,7 @@ export default function UserLayout() {
       setSubscription(response.data)
       setSubscriptionActive(response.data.is_active)
     } catch (error) {
-      console.error('Error fetching subscription:', error)
+      logger.error('Error fetching subscription:', error)
     }
   }
 
@@ -91,7 +92,7 @@ export default function UserLayout() {
         setSelectedAlergens(user.alergens.split('#').filter(id => id !== ''))
       }
     } catch (error) {
-      console.error('Error fetching alergens:', error)
+      logger.error('Error fetching alergens:', error)
     }
   }
 
@@ -113,6 +114,8 @@ export default function UserLayout() {
         alergens: alergenString
       })
       notify('Аллергены успешно сохранены', 'success')
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      window.location.reload()
     } catch (error) {
       notify(error.response?.data?.detail || 'Ошибка при сохранении аллергенов', 'error')
     } finally {

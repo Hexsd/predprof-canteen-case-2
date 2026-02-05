@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNotification } from '../hooks/useNotification'
+import logger from '../utils/logger'
 
 export default function ReviewsViewModal({ dishId, dishName, onClose }) {
   const [reviews, setReviews] = useState([])
@@ -20,7 +21,7 @@ export default function ReviewsViewModal({ dishId, dishName, onClose }) {
         setStats(statsRes.data)
         setLoading(false)
       } catch (error) {
-        console.error('Error fetching reviews:', error)
+        logger.error('Error fetching reviews:', error)
         notify('Ошибка загрузки отзывов', 'error')
         setLoading(false)
       }

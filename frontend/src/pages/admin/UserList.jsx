@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useAuth } from '../auth/AuthContext'
+import logger from '../../utils/logger'
 
 export default function UserList() {
   const [users, setUsers] = useState([])
@@ -16,7 +17,7 @@ export default function UserList() {
       const res = await axios.get('/api/users')
       setUsers(res.data)
     } catch (error) {
-      console.error('Error fetching users:', error)
+      logger.error('Error fetching users:', error)
       setError(error.response?.data?.detail || 'Ошибка загрузки пользователей')
     } finally {
       setLoading(false)
@@ -38,7 +39,7 @@ export default function UserList() {
         user.id === userId ? { ...user, role: newRole } : user
       ))
     } catch (error) {
-      console.error('Ошибка изменения роли:', error)
+      logger.error('Ошибка изменения роли:', error)
       setError(error.response?.data?.detail || 'Ошибка обновления роли пользователя')
     }
   }

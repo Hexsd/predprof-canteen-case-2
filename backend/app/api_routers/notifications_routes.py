@@ -6,6 +6,9 @@ import json
 import threading
 from .. import models, auth
 from ..database import get_db
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["websocket"])
 
@@ -63,7 +66,7 @@ def send_notification(user_id: int, message: str, notification_type: str = "info
                     "type": notification_type
                 })
             except Exception as e:
-                print(f"Error sending notification: {e}")
+                logger.exception("Error sending notification: %s", e)
                 if user_id in active_connections:
                     active_connections[user_id].discard(websocket)
         
@@ -75,4 +78,4 @@ def send_notification(user_id: int, message: str, notification_type: str = "info
                 loop.run_until_complete(send_to_client(connection))
                 loop.close()
             except Exception as e:
-                print(f"Error in send_notification: {e}")
+                logger.exception("Error in send_notification: %s", e)

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
+import logger from '../../utils/logger'
 import { useNavigate } from 'react-router-dom'
 import { useNotification } from '../../hooks/useNotification'
 
@@ -35,7 +36,7 @@ export default function Menu() {
                 setAlergens(response.data[2]);
 
             } catch (error) {
-                console.error('Error fetching products and dishes:', error);
+                logger.error('Error fetching products and dishes:', error);
             }
         }
 
@@ -45,13 +46,11 @@ export default function Menu() {
         },[])
 
     useEffect(() => {
-        console.log(products);
         let dict = {};
         products.forEach(element => {
             dict[element.id]=0;
         })
         setUsedProducts(dict);
-        console.log(dict);
     },[menu])
     const fetchByDate = async (e) => {
         e.preventDefault();
@@ -80,7 +79,6 @@ export default function Menu() {
     function changeDishBreakfast(index, id_new) {
         let breakfast_new = menu.breakfast.split("#");
         breakfast_new[index] = id_new;
-        console.log(index, id_new, breakfast_new.join("#"));
         const new_menu = {...menu, breakfast: breakfast_new.join("#")}
         setMenu(new_menu)
     }
@@ -94,7 +92,6 @@ export default function Menu() {
     function changeDishLunch(index, id_new) {
         let lunch_new = menu.lunch.split("#");
         lunch_new[index] = id_new;
-        console.log(index, id_new, lunch_new.join("#"));
         const new_menu = {...menu, lunch: lunch_new.join("#")}
         setMenu(new_menu)
     }
@@ -108,12 +105,11 @@ export default function Menu() {
     function findposition(id, table) {
         let elem = {};
         table.forEach(element => {
-            if (element.id==id)
+            if (element.id == id)
             {
                 elem = element
             }
         });
-        //console.log(elem);
         return elem
     }
 
@@ -256,7 +252,7 @@ export default function Menu() {
                                     const dish = findposition(parseInt(item), dishes);
                                     const k = (menu.breakfast + '#' + menu.lunch).split('#').filter(m => m == item).length;
                                     let dish_amount = considerCookedMeals ? dish.amount : 0
-                                    console.log(considerCookedMeals);
+                                    
                                     const dishesNeeded = portions * k - dish_amount;
 
                                     return (

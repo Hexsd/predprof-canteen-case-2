@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { useNotification } from '../../hooks/useNotification'
+import logger from '../../utils/logger'
 
 export default function Products() {
     const [dishes, setDishes] = useState([]);
@@ -24,7 +25,7 @@ export default function Products() {
           setProducts(response.data[1]);
           setAlergens(response.data[2]);
         } catch (error) {
-          console.error('Error fetching products and dishes:', error);
+            logger.error('Error fetching products and dishes:', error);
         }
     }
     useEffect(() =>
@@ -72,7 +73,6 @@ export default function Products() {
                     }
                     else
                     {
-                        //console.log(able);
                         setProducts(new_products);
                     }
                 }
@@ -105,7 +105,6 @@ export default function Products() {
             }
             return item;
         });
-        //console.log(`/api/cook/new_${type}`)
         setProducts(new_products);
     } 
 
@@ -148,7 +147,6 @@ export default function Products() {
             any_item.forEach(element => {
                 if (parseInt(element)==product.id)
                 {
-                    // console.log("sovpadenye");
                     any_item_names.push(product.name);
                     return;
                 }
@@ -169,7 +167,6 @@ export default function Products() {
                 elem = element
             }
         });
-        //console.log(elem);
         return elem
     }
 
@@ -181,7 +178,6 @@ export default function Products() {
                 elem_in = index
             }
         });
-        //console.log(elem);
         return elem_in
     }
 

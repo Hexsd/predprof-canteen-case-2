@@ -3,6 +3,7 @@ import axios from 'axios'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { useNotification } from '../../hooks/useNotification'
+import logger from '../../utils/logger'
 
 export default function ReviewPage() {
   const location = useLocation()
@@ -43,7 +44,7 @@ export default function ReviewPage() {
         setDishNames(dishDetailsMap)
         setLoading(false)
       } catch (error) {
-        console.error('Error fetching dishes:', error)
+        logger.error('Error fetching dishes:', error)
         notify('Ошибка загрузки блюд', 'error')
         setLoading(false)
       }
