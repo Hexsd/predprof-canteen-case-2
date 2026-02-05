@@ -22,7 +22,7 @@ export default function Menu() {
     const [alergens, setAlergens] = useState([]);
     const navigate = useNavigate()
     const { notify } = useNotification()
-    
+
     const [portions, setPortions] = useState(1);
     const [usedProducts, setUsedProducts] = useState({});
     const [considerCookedMeals, setCCM] = useState(true);
@@ -33,7 +33,7 @@ export default function Menu() {
                 setDishes(response.data[0]);
                 setProducts(response.data[1]);
                 setAlergens(response.data[2]);
-                
+
             } catch (error) {
                 console.error('Error fetching products and dishes:', error);
             }
@@ -43,7 +43,7 @@ export default function Menu() {
         {
             fetchAll();
         },[])
-    
+
     useEffect(() => {
         console.log(products);
         let dict = {};
@@ -168,7 +168,7 @@ export default function Menu() {
                     <button type="button" onClick={() => (setMenu({...menu, breakfast: menu.breakfast === "" ? "1" : menu.breakfast+"#1"}))} className="add-dish-btn">
                         + Добавить блюдо
                     </button>
-                    
+
                     <h3>Обед</h3>
                     <table className="cook-table">
                         <thead>
@@ -194,7 +194,7 @@ export default function Menu() {
                             ))}
                         </tbody>
                     </table>
-                    
+
                     <button type="button" onClick={() => (setMenu({...menu, lunch: menu.lunch === "" ? "1" : menu.lunch+"#1"}))} className="add-dish-btn">
                         + Добавить блюдо
                     </button>
@@ -205,9 +205,9 @@ export default function Menu() {
                 {menu.breakfast !== "" && menu.lunch !== "" && (
                     <>
                         <h3>Расчет продуктов</h3>
-                        <div className="form-group-inline">
+                        <div className="form-group-inline" style={{width: '40%'}}>
                         <div className="form-group">
-                            <label className="form-label">Количество порций</label>
+                            <label className="form-label"><h4>Количество порций</h4></label>
                             <input
                             type="number"
                             value={portions}
@@ -216,16 +216,24 @@ export default function Menu() {
                             min="1"
                             />
                         </div>
-                            <div className="form-group">
-                                    <label className="form-label">
+                            {/* <div className="form-group"> */}
+                                    {/* <label className="form-label">
                                         <input
                                             type="checkbox"
                                             checked={considerCookedMeals}
                                             onChange={(e) => setCCM(e.target.checked)}
                                         />
                                         Учитывать уже приготовленные блюда
+                                    </label> */}
+                                    <label className="alergen-checkbox">
+                                        <input
+                                        type="checkbox"
+                                        checked={considerCookedMeals}
+                                        onChange={(e) => setCCM(e.target.checked)}
+                                        />
+                                        <span className="checkbox-label">Учитывать уже приготовленные блюда</span>
                                     </label>
-                            </div>
+                            {/* </div> */}
                         </div>
 
                         {(() => {

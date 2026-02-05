@@ -89,23 +89,39 @@ export default function ManageApplications() {
                 
                 <div className="week-selector">
                     <div className="form-group">
-                        <label className="form-label">
+                        {/* <label className="form-label">
                             <input
                                 type="checkbox"
                                 checked={showDenied}
                                 onChange={(e) => setShowDenied(e.target.checked)}
                             />
                             Показывать отклонённые
+                        </label> */}
+                        <label className="alergen-checkbox">
+                            <input
+                            type="checkbox"
+                            checked={showDenied}
+                            onChange={(e) => setShowDenied(e.target.checked)}
+                            />
+                            <span className="checkbox-label">Показывать отклонённые</span>
                         </label>
                     </div>
                     <div className="form-group">
-                            <label className="form-label">
+                            {/* <label className="form-label">
                                 <input
                                     type="checkbox"
                                     checked={showAllowed}
                                     onChange={(e) => setShowAllowed(e.target.checked)}
                                 />
                                 Показывать одобренные
+                            </label> */}
+                            <label className="alergen-checkbox">
+                                <input
+                                type="checkbox"
+                                checked={showAllowed}
+                                onChange={(e) => setShowAllowed(e.target.checked)}
+                                />
+                                <span className="checkbox-label">Показывать одобренные</span>
                             </label>
                     </div>
                 </div>
