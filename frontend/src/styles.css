@@ -1032,6 +1032,7 @@ input[type="text"]:focus {
   display: flex;
   flex-direction: column;
   flex: 1;
+  justify-content: space-between;
 }
 
 .dish-name {
@@ -1044,12 +1045,19 @@ input[type="text"]:focus {
   word-break: break-word;
 }
 
+.dish-footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-top: auto;
+}
+
 .dish-rating {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 0;
 }
 
 .stars {
@@ -1623,12 +1631,12 @@ input[type="text"]:focus {
 }
 
 .btn-submit {
-  background-color: var(--color-success);
+  background-color: var(--color-primary);
   color: white;
 }
 
 .btn-submit:hover:not(:disabled) {
-  background-color: var(--color-success-hover);
+  background-color: var(--color-primary-dark);
 }
 
 .btn-skip {
@@ -1808,7 +1816,7 @@ input[type="text"]:focus {
 }
 
 .view-reviews-btn:hover {
-  background-color: #5ee8e8;
+  background-color: var(--color-primary-dark);
 }
 
 .history-btn {
@@ -1945,4 +1953,243 @@ input[type="text"]:focus {
 
 .btn-leave-review:hover {
   background-color: var(--color-primary-dark);
+}
+
+/* Allergen warning badge */
+.allergen-warning {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: var(--color-error);
+  color: white;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  z-index: 10;
+}
+
+.dish-image-container {
+  position: relative;
+}
+
+/* Allergens section */
+.alergens-section {
+  margin-top: var(--spacing-2xl);
+  padding: var(--spacing-2xl);
+  background-color: var(--color-bg-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.alergens-section h3 {
+  font-size: var(--font-size-xl);
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.alergens-description {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.5;
+}
+
+.alergens-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.alergen-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  cursor: pointer;
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-light);
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.alergen-checkbox:hover {
+  background-color: var(--color-bg-main);
+  border-color: var(--color-primary);
+}
+
+.alergen-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+.alergen-checkbox input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.checkbox-label {
+  user-select: none;
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.save-alergens-btn {
+  width: 100%;
+  max-width: 300px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-alergens-btn:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.save-alergens-btn:disabled {
+  background-color: var(--color-border);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+/* Export Section */
+.export-section {
+  background: var(--color-bg-light);
+  padding: var(--spacing-2xl);
+  margin-top: var(--spacing-2xl);
+  border: 2px solid var(--color-border-light);
+}
+
+.export-section h2 {
+  font-size: var(--font-size-2xl);
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-xl);
+  font-weight: 600;
+}
+
+.export-buttons {
+  display: flex;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.export-btn {
+  padding: var(--spacing-md) var(--spacing-xl);
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  box-shadow: var(--shadow-md);
+}
+
+.export-btn:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.export-btn:disabled {
+  background-color: var(--color-border);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.export-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Chart Styles */
+.chart-container {
+  background-color: var(--color-bg-white);
+  padding: var(--spacing-2xl);
+  margin-top: var(--spacing-2xl);
+  box-shadow: var(--shadow-md);
+}
+
+.chart-metrics-toggle {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.chart-metrics-toggle h3 {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+}
+
+.metrics-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.metric-btn {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 2px solid;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.metric-btn.active {
+  background-color: rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-sm);
+}
+
+.metric-btn.inactive {
+  opacity: 0.5;
+}
+
+.metric-btn:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 400px;
+  margin: var(--spacing-2xl) 0;
+}
+
+.chart-info {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-border-light);
+}
+
+@media (max-width: 768px) {
+  .chart-container {
+    padding: var(--spacing-lg);
+  }
+
+  .metrics-buttons {
+    flex-direction: column;
+  }
+
+  .metric-btn {
+    width: 100%;
+  }
+
+  .chart-wrapper {
+    height: 300px;
+  }
 }

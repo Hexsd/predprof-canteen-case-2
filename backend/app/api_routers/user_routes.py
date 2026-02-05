@@ -47,6 +47,7 @@ def update_user_role(
 
 @router.post("/buy/breakfast", response_model=schemas.BuyMealResponse)
 def buy_breakfast(
+    delivery_date: date = None,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -57,17 +58,21 @@ def buy_breakfast(
     if current_user.balance < BREAKFAST_PRICE:
         raise HTTPException(status_code=400, detail="Недостаточно средств")
     
+    today = date.today()
+    meal_delivery_date = delivery_date if delivery_date else today
+    
     payment = models.Payment(
         user_id=current_user.id,
         amount=BREAKFAST_PRICE,
         type="breakfast",
-        date=date.today()
+        purchase_date=today,
+        delivery_date=meal_delivery_date
     )
     db.add(payment)
     
     current_user.balance -= BREAKFAST_PRICE
     
-    menu = db.query(models.Menu).filter(models.Menu.date == date.today()).first()
+    menu = db.query(models.Menu).filter(models.Menu.date == meal_delivery_date).first()
     if menu:
         menu.given_breakfasts += 1
         breakfast_dishes = menu.breakfast.split('#') if menu.breakfast else []
@@ -76,13 +81,13 @@ def buy_breakfast(
     
     meal_record = db.query(models.MealRecord).filter(
         models.MealRecord.user_id == current_user.id,
-        models.MealRecord.date == date.today()
+        models.MealRecord.date == meal_delivery_date
     ).first()
     
     if not meal_record:
         meal_record = models.MealRecord(
             user_id=current_user.id,
-            date=date.today(),
+            date=meal_delivery_date,
             breakfast="completed",
             lunch=None
         )
@@ -93,7 +98,7 @@ def buy_breakfast(
     meal_history = models.MealHistory(
         user_id=current_user.id,
         meal_type="breakfast",
-        date=date.today(),
+        date=meal_delivery_date,
         source="purchased",
         dishes="#".join(str(d) for d in breakfast_dishes)
     )
@@ -110,6 +115,7 @@ def buy_breakfast(
 
 @router.post("/buy/lunch", response_model=schemas.BuyMealResponse)
 def buy_lunch(
+    delivery_date: date = None,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -120,17 +126,21 @@ def buy_lunch(
     if current_user.balance < LUNCH_PRICE:
         raise HTTPException(status_code=400, detail="Недостаточно средств")
     
+    today = date.today()
+    meal_delivery_date = delivery_date if delivery_date else today
+    
     payment = models.Payment(
         user_id=current_user.id,
         amount=LUNCH_PRICE,
         type="lunch",
-        date=date.today()
+        purchase_date=today,
+        delivery_date=meal_delivery_date
     )
     db.add(payment)
     
     current_user.balance -= LUNCH_PRICE
     
-    menu = db.query(models.Menu).filter(models.Menu.date == date.today()).first()
+    menu = db.query(models.Menu).filter(models.Menu.date == meal_delivery_date).first()
     if menu:
         menu.given_lunches += 1
         lunch_dishes = menu.lunch.split('#') if menu.lunch else []
@@ -139,13 +149,13 @@ def buy_lunch(
     
     meal_record = db.query(models.MealRecord).filter(
         models.MealRecord.user_id == current_user.id,
-        models.MealRecord.date == date.today()
+        models.MealRecord.date == meal_delivery_date
     ).first()
     
     if not meal_record:
         meal_record = models.MealRecord(
             user_id=current_user.id,
-            date=date.today(),
+            date=meal_delivery_date,
             breakfast=None,
             lunch="completed"
         )
@@ -156,7 +166,7 @@ def buy_lunch(
     meal_history = models.MealHistory(
         user_id=current_user.id,
         meal_type="lunch",
-        date=date.today(),
+        date=meal_delivery_date,
         source="purchased",
         dishes="#".join(str(d) for d in lunch_dishes)
     )
@@ -192,7 +202,8 @@ def buy_subscription(
     if old_subscription:
         db.delete(old_subscription)
     
-    start_date_val = date.today()
+    today = date.today()
+    start_date_val = today
     end_date_val = start_date_val + timedelta(days=sub_data.days)
     
     subscription = models.Subscription(
@@ -204,13 +215,18 @@ def buy_subscription(
     
     current_user.balance -= total_price
     
-    payment = models.Payment(
-        user_id=current_user.id,
-        amount=total_price,
-        type="subscription",
-        date=date.today()
-    )
-    db.add(payment)
+    daily_price = SUBSCRIPTION_PRICE_PER_DAY
+    for day_offset in range(sub_data.days):
+        delivery_date = start_date_val + timedelta(days=day_offset)
+        payment = models.Payment(
+            user_id=current_user.id,
+            amount=daily_price,
+            type="subscription",
+            purchase_date=today,
+            delivery_date=delivery_date
+        )
+        db.add(payment)
+    
     db.add(subscription)
     db.commit()
     db.refresh(subscription)
@@ -254,9 +270,11 @@ def get_breakfast_with_subscription(
     if not subscription or subscription.end_date < date.today():
         raise HTTPException(status_code=400, detail="Абонемент не активен")
     
+    today = date.today()
+    
     meal_record = db.query(models.MealRecord).filter(
         models.MealRecord.user_id == current_user.id,
-        models.MealRecord.date == date.today()
+        models.MealRecord.date == today
     ).first()
     
     if meal_record:
@@ -266,15 +284,24 @@ def get_breakfast_with_subscription(
     else:
         meal_record = models.MealRecord(
             user_id=current_user.id,
-            date=date.today(),
+            date=today,
             breakfast="completed",
             lunch=None
         )
         db.add(meal_record)
     
-    menu = db.query(models.Menu).filter(models.Menu.date == date.today()).first()
+    menu = db.query(models.Menu).filter(models.Menu.date == today).first()
     if menu:
         menu.given_breakfasts += 1
+    
+    dummy_payment = models.Payment(
+        user_id=current_user.id,
+        amount=0,
+        type="breakfast",
+        purchase_date=today,
+        delivery_date=today
+    )
+    db.add(dummy_payment)
     
     db.commit()
     
@@ -286,7 +313,7 @@ def get_breakfast_with_subscription(
     meal_history = models.MealHistory(
         user_id=current_user.id,
         meal_type="breakfast",
-        date=date.today(),
+        date=today,
         source="subscription",
         dishes="#".join(str(d) for d in breakfast_dishes)
     )
@@ -295,7 +322,7 @@ def get_breakfast_with_subscription(
     
     return {
         "message": "Завтрак получен, оставьте отзыв",
-        "date": date.today(),
+        "date": today,
         "meal_type": "breakfast",
         "dishes": breakfast_dishes
     }
@@ -315,9 +342,11 @@ def get_lunch_with_subscription(
     if not subscription or subscription.end_date < date.today():
         raise HTTPException(status_code=400, detail="Абонемент не активен")
     
+    today = date.today()
+    
     meal_record = db.query(models.MealRecord).filter(
         models.MealRecord.user_id == current_user.id,
-        models.MealRecord.date == date.today()
+        models.MealRecord.date == today
     ).first()
     
     if meal_record:
@@ -327,15 +356,24 @@ def get_lunch_with_subscription(
     else:
         meal_record = models.MealRecord(
             user_id=current_user.id,
-            date=date.today(),
+            date=today,
             breakfast=None,
             lunch="completed"
         )
         db.add(meal_record)
     
-    menu = db.query(models.Menu).filter(models.Menu.date == date.today()).first()
+    menu = db.query(models.Menu).filter(models.Menu.date == today).first()
     if menu:
         menu.given_lunches += 1
+    
+    dummy_payment = models.Payment(
+        user_id=current_user.id,
+        amount=0,
+        type="lunch",
+        purchase_date=today,
+        delivery_date=today
+    )
+    db.add(dummy_payment)
     
     db.commit()
     
@@ -370,12 +408,14 @@ def up_balance(
     if current_user.role != models.UserRole.student:
         raise HTTPException(status_code=403, detail="Только студенты могут пополнять баланс")
     
+    today = date.today()
     up_amount = up_request.amount
     payment = models.Payment(
         user_id=current_user.id,
         amount=up_amount,
         type="up_balance",
-        date=date.today()
+        purchase_date=today,
+        delivery_date=today
     )
     db.add(payment)
     current_user.balance += up_amount

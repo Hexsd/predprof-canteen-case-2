@@ -7,6 +7,7 @@ export default function ManageApplications() {
     const [products, setProducts] = useState([]);
     const [alergens, setAlergens] = useState([]);
     const [applications, setApplications] = useState([]);
+    const [prevApplications, setPrevApplications] = useState([]);
     const [showDenied, setShowDenied] = useState(true);
     const [showAllowed, setShowAllowed] = useState(true);
     const [users, setUsers] = useState([]);
@@ -29,6 +30,7 @@ export default function ManageApplications() {
         try {
             const response = await axios.get('/api/admin/appsas_all');
             setApplications(response.data);
+            setPrevApplications(response.data);
         } catch (error) {
             console.error('Error fetching applications:', error);
         }
@@ -54,10 +56,18 @@ export default function ManageApplications() {
         e.preventDefault();
         try {
             await axios.post('/api/admin/apps_confirm', applications);
+            await fetchApps()
             notify("Изменение статуса заявок выполнено", "success");
         } catch (error) {
             console.error('Error uploading applications:', error);
         }
+    };
+
+    const getStatusColor = (status) => {
+        if (status.trim() === 'Одобрена') return 'var(--color-success)';
+        if (status.trim() === 'Отклонена') return 'var(--color-error)';
+        if (status.trim() === 'На рассмотрении') return 'var(--color-unsure)';
+        return 'var(--color-text-secondary)';
     };
 
     function findposition(id, table) {
@@ -89,14 +99,14 @@ export default function ManageApplications() {
                         </label>
                     </div>
                     <div className="form-group">
-                        <label className="form-label">
-                            <input
-                                type="checkbox"
-                                checked={showAllowed}
-                                onChange={(e) => setShowAllowed(e.target.checked)}
-                            />
-                            Показывать одобренные
-                        </label>
+                            <label className="form-label">
+                                <input
+                                    type="checkbox"
+                                    checked={showAllowed}
+                                    onChange={(e) => setShowAllowed(e.target.checked)}
+                                />
+                                Показывать одобренные
+                            </label>
                     </div>
                 </div>
 
@@ -116,6 +126,8 @@ export default function ManageApplications() {
                             
                             if (app.status === "Одобрена" && !showAllowed) return null;
                             if (app.status === "Отклонена" && !showDenied) return null;
+
+                            let status_color = getStatusColor(app.status);
                             
                             const user = findposition(parseInt(app.user_id), users);
                             
@@ -131,14 +143,27 @@ export default function ManageApplications() {
                                             summary += parseInt(amount) * parseInt(price);
                                             return (
                                                 <div key={idx}>
-                                                    {product?.name || 'Неизвестный продукт'} × {amount} ({price} ₽/шт.)
+                                                    {product?.name || 'Продукт отсутствует в базе (заявка недействительна)'} × {amount} ({price} ₽/шт.)
                                                 </div>
                                             );
                                         })}
                                     </td>
                                     <td>{summary} ₽</td>
                                     <td>
-                                        <select 
+                                        {prevApplications[index].status=="Одобрена" ? (
+                                            <span 
+                                                style={{ 
+                                                    color: status_color,
+                                                    fontWeight: '600',
+                                                    display: 'inline-block',
+                                                    padding: 'var(--spacing-sm) var(--spacing-md)',
+                                                    borderRadius: '4px',
+                                                    backgroundColor: `${status_color}15`
+                                                }}
+                                            >
+                                                Одобрена
+                                            </span>
+                                        ) : (<select 
                                             value={app.status} 
                                             onChange={(e) => {
                                                 const newApplications = [...applications];
@@ -150,7 +175,7 @@ export default function ManageApplications() {
                                             <option value="На рассмотрении">На рассмотрении</option>
                                             <option value="Одобрена">Одобрена</option>
                                             <option value="Отклонена">Отклонена</option>
-                                        </select>
+                                        </select>)}     
                                     </td>
                                 </tr>
                             );

@@ -164,7 +164,8 @@ export default function Index() {
     }
 
     try {
-      const response = await axios.post('/api/users/buy/breakfast')
+      const dateStr = selectedDate.toISOString().split('T')[0]
+      const response = await axios.post(`/api/users/buy/breakfast?delivery_date=${dateStr}`)
       notify(`Завтрак куплен! Баланс: ${response.data.user.balance} ₽`, 'success')
       
       const breakfastDishes = response.data.breakfast_dishes || []
@@ -211,7 +212,8 @@ export default function Index() {
     }
 
     try {
-      const response = await axios.post('/api/users/buy/lunch')
+      const dateStr = selectedDate.toISOString().split('T')[0]
+      const response = await axios.post(`/api/users/buy/lunch?delivery_date=${dateStr}`)
       notify(`Обед куплен! Баланс: ${response.data.user.balance} ₽`, 'success')
       
       const lunchDishes = response.data.lunch_dishes || []
@@ -322,6 +324,7 @@ export default function Index() {
                     <DishCard
                       key={index}
                       dish={dish}
+                      products={products}
                     />
                   )
                 })}
@@ -347,6 +350,7 @@ export default function Index() {
                     <DishCard
                       key={index}
                       dish={dish}
+                      products={products}
                     />
                   )
                 })}

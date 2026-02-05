@@ -8,6 +8,7 @@ class UserCreate(BaseModel):
     password: str
     birth_date: date
     role: Optional[UserRole] = UserRole.student
+    alergens: str = ""
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
@@ -19,10 +20,14 @@ class User(BaseModel):
     birth_date: date
     role: UserRole
     balance: int
+    alergens: str = ""
     class Config:
         from_attributes = True
 class UserRoleUpdate(BaseModel):
     role: UserRole
+
+class UserAlergensUpdate(BaseModel):
+    alergens: str = ""
 
 class Token(BaseModel):
     access_token: str
@@ -81,6 +86,7 @@ class AlergenCreate(BaseModel):
 class UserPersonalPage(BaseModel):
     email: EmailStr
     name: str
+    alergens: str = ""
 
 class Payment(BaseModel):
     id: int

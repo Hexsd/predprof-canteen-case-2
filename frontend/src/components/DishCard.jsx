@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import ReviewsViewModal from './ReviewsViewModal'
+import { useAuth } from '../pages/auth/AuthContext'
 
-export default function DishCard({ dish }) {
+export default function DishCard({ dish, products = [] }) {
   const [rating, setRating] = useState(0)
   const [reviewCount, setReviewCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [showReviewsModal, setShowReviewsModal] = useState(false)
+  const [hasAllergen, setHasAllergen] = useState(false)
+  const { user } = useAuth()
   const hasImage = false
 
   useEffect(() => {
@@ -26,6 +29,24 @@ export default function DishCard({ dish }) {
 
     fetchRating()
   }, [dish.id])
+
+  useEffect(() => {
+    if (user?.alergens && dish.products && products.length > 0) {
+      const userAlergens = user.alergens.split('#').filter(id => id !== '')
+      const dishProductIds = dish.products.split('#').filter(id => id !== '')
+      
+      const dishHasAllergen = dishProductIds.some(productId => {
+        const product = products.find(p => p.id === parseInt(productId))
+        if (product && product.alergens) {
+          const productAlergens = product.alergens.split('#').filter(id => id !== '')
+          return productAlergens.some(allergen => userAlergens.includes(allergen))
+        }
+        return false
+      })
+      
+      setHasAllergen(dishHasAllergen)
+    }
+  }, [user, dish, products])
 
   const renderStars = (rating) => {
     const filledStars = Math.floor(rating)
@@ -48,26 +69,33 @@ export default function DishCard({ dish }) {
               <span className="placeholder-icon">🍴</span>
             </div>
           )}
+          {hasAllergen && (
+            <div className="allergen-warning">
+              Опасно для вас
+            </div>
+          )}
         </div>
 
         <div className="dish-info">
           <h4 className="dish-name">{dish.name}</h4>
           
-          <div className="dish-rating">
-            <div className="stars">
-              {renderStars(rating)}
+          <div className="dish-footer">
+            <div className="dish-rating">
+              <div className="stars">
+                {renderStars(rating)}
+              </div>
+              <span className="rating-text">{rating.toFixed(1)}</span>
             </div>
-            <span className="rating-text">{rating.toFixed(1)}</span>
-          </div>
 
-          {reviewCount > 0 && (
-            <button
-              className="view-reviews-btn"
-              onClick={() => setShowReviewsModal(true)}
-            >
-              Смотреть отзывы ({reviewCount})
-            </button>
-          )}
+            {reviewCount > 0 && (
+              <button
+                className="view-reviews-btn"
+                onClick={() => setShowReviewsModal(true)}
+              >
+                Смотреть отзывы ({reviewCount})
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

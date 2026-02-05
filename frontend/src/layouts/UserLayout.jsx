@@ -27,7 +27,7 @@ export default function UserLayout() {
           
           <div className="user-info">
             <Link to="/personal" className="user-greeting">
-              Здравствуйте, {user.name}!
+              Войти в личный кабинет
             </Link>
             <button onClick={logout} className="logout-btn">
               Выйти
