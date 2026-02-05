@@ -1807,7 +1807,7 @@ input[type="text"]:focus {
   margin-top: var(--spacing-md);
   padding: var(--spacing-sm) var(--spacing-md);
   background-color: var(--color-primary);
-  color: var(--color-bg-main);
+  color: var(--color-text-primary);
   border: none;
   font-size: var(--font-size-sm);
   font-weight: 500;
