@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import update
 from typing import List
 from .. import models, schemas, auth
 from ..database import get_db
@@ -61,6 +62,19 @@ def buy_breakfast(
     today = date.today()
     meal_delivery_date = delivery_date if delivery_date else today
     
+    menu = db.query(models.Menu).filter(models.Menu.date == meal_delivery_date).first()
+    if menu:
+        menu.given_breakfasts += 1
+        breakfast_dishes = menu.breakfast.split('#') if menu.breakfast else []
+    else:
+        breakfast_dishes = []
+
+    for dish_id in breakfast_dishes:
+        if db.query(models.Dish).filter(models.Dish.id == int(dish_id)).first().amount-1<0:
+            raise HTTPException(HTTPException(status_code=400, detail="Невозможно укомплектовать завтрак"))
+        db.execute(update(models.Dish).where(models.Dish.id == int(dish_id)).values(amount=models.Dish.amount-1))
+    db.commit()
+    
     payment = models.Payment(
         user_id=current_user.id,
         amount=BREAKFAST_PRICE,
@@ -71,13 +85,6 @@ def buy_breakfast(
     db.add(payment)
     
     current_user.balance -= BREAKFAST_PRICE
-    
-    menu = db.query(models.Menu).filter(models.Menu.date == meal_delivery_date).first()
-    if menu:
-        menu.given_breakfasts += 1
-        breakfast_dishes = menu.breakfast.split('#') if menu.breakfast else []
-    else:
-        breakfast_dishes = []
     
     meal_record = db.query(models.MealRecord).filter(
         models.MealRecord.user_id == current_user.id,
@@ -128,6 +135,19 @@ def buy_lunch(
     
     today = date.today()
     meal_delivery_date = delivery_date if delivery_date else today
+
+    menu = db.query(models.Menu).filter(models.Menu.date == meal_delivery_date).first()
+    if menu:
+        menu.given_lunches += 1
+        lunch_dishes = menu.lunch.split('#') if menu.lunch else []
+    else:
+        lunch_dishes = []
+
+    for dish_id in lunch_dishes:
+        if db.query(models.Dish).filter(models.Dish.id == int(dish_id)).first().amount-1<0:
+            raise HTTPException(HTTPException(status_code=400, detail="Невозможно укомплектовать обед"))
+        db.execute(update(models.Dish).where(models.Dish.id == int(dish_id)).values(amount=models.Dish.amount-1))
+    db.commit()
     
     payment = models.Payment(
         user_id=current_user.id,
@@ -139,13 +159,6 @@ def buy_lunch(
     db.add(payment)
     
     current_user.balance -= LUNCH_PRICE
-    
-    menu = db.query(models.Menu).filter(models.Menu.date == meal_delivery_date).first()
-    if menu:
-        menu.given_lunches += 1
-        lunch_dishes = menu.lunch.split('#') if menu.lunch else []
-    else:
-        lunch_dishes = []
     
     meal_record = db.query(models.MealRecord).filter(
         models.MealRecord.user_id == current_user.id,
@@ -271,6 +284,19 @@ def get_breakfast_with_subscription(
         raise HTTPException(status_code=400, detail="Абонемент не активен")
     
     today = date.today()
+
+    menu = db.query(models.Menu).filter(models.Menu.date == meal_delivery_date).first()
+    if menu:
+        menu.given_breakfasts += 1
+        breakfast_dishes = menu.breakfast.split('#') if menu.breakfast else []
+    else:
+        breakfast_dishes = []
+
+    for dish_id in breakfast_dishes:
+        if db.query(models.Dish).filter(models.Dish.id == int(dish_id)).first().amount-1<0:
+            raise HTTPException(HTTPException(status_code=400, detail="Невозможно укомплектовать завтрак"))
+        db.execute(update(models.Dish).where(models.Dish.id == int(dish_id)).values(amount=models.Dish.amount-1))
+    db.commit()
     
     meal_record = db.query(models.MealRecord).filter(
         models.MealRecord.user_id == current_user.id,
@@ -289,10 +315,6 @@ def get_breakfast_with_subscription(
             lunch=None
         )
         db.add(meal_record)
-    
-    menu = db.query(models.Menu).filter(models.Menu.date == today).first()
-    if menu:
-        menu.given_breakfasts += 1
     
     dummy_payment = models.Payment(
         user_id=current_user.id,
@@ -343,6 +365,19 @@ def get_lunch_with_subscription(
         raise HTTPException(status_code=400, detail="Абонемент не активен")
     
     today = date.today()
+
+    menu = db.query(models.Menu).filter(models.Menu.date == meal_delivery_date).first()
+    if menu:
+        menu.given_lunches += 1
+        lunch_dishes = menu.lunch.split('#') if menu.lunch else []
+    else:
+        lunch_dishes = []
+
+    for dish_id in lunch_dishes:
+        if db.query(models.Dish).filter(models.Dish.id == int(dish_id)).first().amount-1<0:
+            raise HTTPException(HTTPException(status_code=400, detail="Невозможно укомплектовать обед"))
+        db.execute(update(models.Dish).where(models.Dish.id == int(dish_id)).values(amount=models.Dish.amount-1))
+    db.commit()
     
     meal_record = db.query(models.MealRecord).filter(
         models.MealRecord.user_id == current_user.id,
@@ -361,10 +396,6 @@ def get_lunch_with_subscription(
             lunch="completed"
         )
         db.add(meal_record)
-    
-    menu = db.query(models.Menu).filter(models.Menu.date == today).first()
-    if menu:
-        menu.given_lunches += 1
     
     dummy_payment = models.Payment(
         user_id=current_user.id,

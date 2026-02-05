@@ -5,6 +5,7 @@ import { useNotification } from '../../hooks/useNotification'
 
 export default function Products() {
     const [dishes, setDishes] = useState([]);
+    const [old_dishes, setOldDishes] = useState([]);
     const [products, setProducts] = useState([]);
     const [alergens, setAlergens] = useState([]);
     const navigate = useNavigate()
@@ -19,6 +20,7 @@ export default function Products() {
         try {
           const response = await axios.get('/api/cook/all');
           setDishes(response.data[0]);
+          setOldDishes(response.data[0]);
           setProducts(response.data[1]);
           setAlergens(response.data[2]);
         } catch (error) {
@@ -49,12 +51,53 @@ export default function Products() {
     function ChangeDishes(index, new_value) {
         const new_dishes = dishes.map((item, i) => {
             if (i === index) {
+                if (new_value > old_dishes[i].amount && new_value > item.amount) 
+                {
+                    let products_amount = new_value-item.amount>new_value-old_dishes[i].amount ? new_value-old_dishes[i].amount : new_value-item.amount;
+                    let new_products = structuredClone(products);
+                    let able = item.products.split('#').map((product, indexx) => {
+                        if (new_products[findindex(parseInt(product), new_products)].amount-products_amount>=0)
+                        {
+                            new_products[findindex(parseInt(product), new_products)].amount-=products_amount;
+                            return true
+                        }
+                        else {
+                            return false
+                        }
+                    })
+                    if (able.includes(false))
+                    {
+                        notify('Недостаточно продуктов для увеличения числа блюд', 'error')
+                        return item
+                    }
+                    else
+                    {
+                        //console.log(able);
+                        setProducts(new_products);
+                    }
+                }
+                else if (new_value <= item.amount && new_value >= old_dishes[i].amount)
+                {
+                    let new_products = [...products];
+                    item.products.split('#').map((product, indexx) => {
+                        new_products[findindex(parseInt(product), new_products)].amount+=(item.amount-new_value);
+                    })
+                    setProducts(new_products);
+                    if (new_value==old_dishes[i].amount)
+                    {
+                        notify(`Число блюд '${item.name}' и привязанных продуктов вернулось в изначальное состояние`, 'success')
+                    }
+                }
+                else {
+                    notify('Это действие не повлияет на число продуктов', 'error')
+                }
                 return { ...item, amount: new_value };
             }
             return item;
         });
         setDishes(new_dishes);
     } 
+
     function ChangeProducts(index, new_value) {
         const new_products = products.map((item, i) => {
             if (i === index) {
@@ -62,7 +105,7 @@ export default function Products() {
             }
             return item;
         });
-        console.log(`/api/cook/new_${type}`)
+        //console.log(`/api/cook/new_${type}`)
         setProducts(new_products);
     } 
 
@@ -117,6 +160,31 @@ export default function Products() {
         });
         return any_item_names
     }
+
+    function findposition(id, table) {
+        let elem = {};
+        table.forEach(element => {
+            if (element.id==id)
+            {
+                elem = element
+            }
+        });
+        //console.log(elem);
+        return elem
+    }
+
+    function findindex(id, table) {
+        let elem_in = 0;
+        table.map((element, index) => {
+            if (element.id==id)
+            {
+                elem_in = index
+            }
+        });
+        //console.log(elem);
+        return elem_in
+    }
+
     if (!dishes[0]) {
         return <div className="loading">Загрузка продуктов...</div>
     }
@@ -146,6 +214,7 @@ export default function Products() {
                             <td>
                                 <input
                                     type="number"
+                                    min="0"
                                     value={item.amount}
                                     onChange={(e) => ChangeDishes(index, e.target.value)}
                                     required
@@ -179,6 +248,7 @@ export default function Products() {
                             <td>
                                 <input
                                     type="number"
+                                    min="0"
                                     value={item.amount}
                                     onChange={(e) => ChangeProducts(index, e.target.value)}
                                     required
@@ -224,7 +294,7 @@ export default function Products() {
                                         <option key={alergen.id} value={alergen.id}>{alergen.name}</option>
                                     ))}
                                 </select>
-                                <p>Выбрано: {components.length > 0 ? components.join(', ') : 'нет'}</p>
+                                <p>Выбрано: {components.length > 0 ? components.map((comp, index) => {return findposition(parseInt(comp), alergens)?.name}).join(', ') : 'нет'}</p>
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Количество</label>
@@ -246,7 +316,7 @@ export default function Products() {
                                         <option key={product.id} value={product.id}>{product.name}</option>
                                     ))}
                                 </select>
-                                <p>Выбрано: {components.length > 0 ? components.join(', ') : 'нет'}</p>
+                                <p>Выбрано: {components.length > 0 ? components.map((comp, index) => {return findposition(parseInt(comp), products)?.name}).join(', ') : 'нет'}</p>
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Количество</label>

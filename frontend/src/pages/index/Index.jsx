@@ -35,6 +35,10 @@ export default function Index() {
   const [breakfastSource, setBreakfastSource] = useState(null)
   const [lunchSource, setLunchSource] = useState(null)
 
+
+  const [enoughDishesBr, setEnoughDishesBr] = useState(true);
+  const [enoughDishesLu, setEnoughDishesLu] = useState(true);
+
   const fetchMenu = async (date) => {
     try {
       const dateStr = date.toISOString().split('T')[0]
@@ -315,54 +319,95 @@ export default function Index() {
         <div className="menu-container">
           <div className="menu-section">
             <h3>Завтрак</h3>
-            <div className="dishes-scroll">
-              <div className="dishes-container">
-                {menu.breakfast.split('#').map((dishId, index) => {
-                  const dish = dishes.find(d => d.id === parseInt(dishId))
-                  if (!dish) return null
+                {(() => {
+                  let unique_dishes_amounts = {};
+                  let unique_dishes_br = new Set(menu.breakfast.split('#'))
+                  let able_to_fulfill = [];
+                  Array.from(unique_dishes_br).forEach(element => {
+                    unique_dishes_amounts[element]=menu.breakfast.split('#').filter(item => item==element).length;
+                  });
+                  // console.log(unique_dishes_amounts);
+
                   return (
-                    <DishCard
-                      key={index}
-                      dish={dish}
-                      products={products}
-                    />
+                    <>
+                      <div className="dishes-scroll">
+                        <div className="dishes-container">
+                          {menu.breakfast.split('#').map((dishId, index) => {
+                              const dish = dishes.find(d => d.id === parseInt(dishId))
+                              if (!dish) return null
+                              else {
+                                if (unique_dishes_amounts[dishId]>dish.amount)
+                                {
+                                  able_to_fulfill.push(false)
+                                }
+                              }
+                              return (
+                                <DishCard
+                                  key={index}
+                                  dish={dish}
+                                  products={products}
+                                />
+                              )
+                            })}
+                            {/* {(()=>{if (able_to_fulfill.includes(false)) {notify('В данный момент блюд недостаточно чтобы вы могли получить завтрак', 'error')};})()} */}
+                        </div>
+                      </div>
+                      <button
+                        onClick={subscriptionActive && !breakfastSource ? handleGetBreakfastWithSubscription : handleBuyBreakfast}
+                        className={`meal-buy-btn ${(!user || user.role !== 'student') ? 'disabled' : ''}`}
+                        disabled={!user || user.role !== 'student' || able_to_fulfill.includes(false)}
+                        >
+                        {subscriptionActive && !breakfastSource ? 'Получить завтрак' : `Купить завтрак - ${BREAKFAST_PRICE} ₽`}
+                      </button>
+                    </>
                   )
-                })}
-              </div>
-            </div>
-            <button
-              onClick={subscriptionActive && !breakfastSource ? handleGetBreakfastWithSubscription : handleBuyBreakfast}
-              className={`meal-buy-btn ${(!user || user.role !== 'student') ? 'disabled' : ''}`}
-              disabled={!user || user.role !== 'student'}
-            >
-              {subscriptionActive && !breakfastSource ? 'Получить завтрак' : `Купить завтрак - ${BREAKFAST_PRICE} ₽`}
-            </button>
+                })()}
           </div>
 
           <div className="menu-section">
             <h3>Обед</h3>
-            <div className="dishes-scroll">
-              <div className="dishes-container">
-                {menu.lunch.split('#').map((dishId, index) => {
-                  const dish = dishes.find(d => d.id === parseInt(dishId))
-                  if (!dish) return null
-                  return (
-                    <DishCard
-                      key={index}
-                      dish={dish}
-                      products={products}
-                    />
-                  )
-                })}
-              </div>
-            </div>
-            <button
-              onClick={subscriptionActive && !lunchSource ? handleGetLunchWithSubscription : handleBuyLunch}
-              className={`meal-buy-btn ${(!user || user.role !== 'student') ? 'disabled' : ''}`}
-              disabled={!user || user.role !== 'student'}
-            >
-              {subscriptionActive && !lunchSource ? 'Получить обед' : `Купить обед - ${LUNCH_PRICE} ₽`}
-            </button>
+            {(()=>{
+              let unique_dishes_amounts = {};
+              let unique_dishes_br = new Set(menu.lunch.split('#'))
+              let able_to_fulfill = [];
+              Array.from(unique_dishes_br).forEach(element => {
+                unique_dishes_amounts[element]=menu.lunch.split('#').filter(item => item==element).length;
+              });
+              // console.log(unique_dishes_amounts);
+
+              return (
+                <>
+                  <div className="dishes-scroll">
+                    <div className="dishes-container">
+                      {menu.lunch.split('#').map((dishId, index) => {
+                        const dish = dishes.find(d => d.id === parseInt(dishId))
+                        if (!dish) return null
+                        else {
+                          if (unique_dishes_amounts[dishId]>dish.amount)
+                          {
+                            able_to_fulfill.push(false)
+                          }
+                        }
+                        return (
+                          <DishCard
+                            key={index}
+                            dish={dish}
+                            products={products}
+                          />
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <button
+                    onClick={subscriptionActive && !lunchSource ? handleGetLunchWithSubscription : handleBuyLunch}
+                    className={`meal-buy-btn ${(!user || user.role !== 'student') ? 'disabled' : ''}`}
+                    disabled={!user || user.role !== 'student' || able_to_fulfill.includes(false)}
+                  >
+                    {subscriptionActive && !lunchSource ? 'Получить обед' : `Купить обед - ${LUNCH_PRICE} ₽`}
+                  </button>
+                </>
+              )
+            })()}
           </div>
         </div>
       ) : (
