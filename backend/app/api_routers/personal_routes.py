@@ -63,3 +63,26 @@ def update_user_alergens(
     db.refresh(user)
     
     return user
+
+@router.put("/{user_id}/preference-threshold", response_model=schemas.User)
+def update_preference_rating_threshold(
+    user_id: int,
+    threshold_update: schemas.PreferenceRatingThresholdUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    
+    if user.id != current_user.id and current_user.role != models.UserRole.admin:
+        raise HTTPException(status_code=403, detail="Нет прав на обновление предпочтений этого пользователя")
+    
+    if threshold_update.preference_rating_threshold < 1 or threshold_update.preference_rating_threshold > 5:
+        raise HTTPException(status_code=400, detail="Порог должен быть от 1 до 5")
+    
+    user.preference_rating_threshold = threshold_update.preference_rating_threshold
+    db.commit()
+    db.refresh(user)
+    
+    return user

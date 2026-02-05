@@ -10,6 +10,7 @@ export default function DishCard({ dish, products = [] }) {
   const [loading, setLoading] = useState(true)
   const [showReviewsModal, setShowReviewsModal] = useState(false)
   const [hasAllergen, setHasAllergen] = useState(false)
+  const [isInPreferences, setIsInPreferences] = useState(false)
   const { user } = useAuth()
   const hasImage = false
 
@@ -49,6 +50,22 @@ export default function DishCard({ dish, products = [] }) {
     }
   }, [user, dish, products])
 
+  useEffect(() => {
+    if (user && user.role === 'student') {
+      const checkPreference = async () => {
+        try {
+          const response = await axios.get(`/api/reviews/preferences/${dish.id}/check`)
+          setIsInPreferences(response.data.in_preferences)
+        } catch (error) {
+          logger.error('Error checking preference:', error)
+          setIsInPreferences(false)
+        }
+      }
+      
+      checkPreference()
+    }
+  }, [user, dish.id])
+
   const renderStars = (rating) => {
     const filledStars = Math.floor(rating)
     const hasHalfStar = rating % 1 !== 0
@@ -72,7 +89,12 @@ export default function DishCard({ dish, products = [] }) {
           )}
           {hasAllergen && (
             <div className="allergen-warning">
-              Опасно для вас
+              Содержит ваши аллергены
+            </div>
+          )}
+          {isInPreferences && (
+            <div className="preference-tag">
+              Избранное
             </div>
           )}
         </div>

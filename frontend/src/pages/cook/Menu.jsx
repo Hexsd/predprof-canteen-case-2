@@ -201,7 +201,7 @@ export default function Menu() {
                 {menu.breakfast !== "" && menu.lunch !== "" && (
                     <>
                         <h3>Расчет продуктов</h3>
-                        <div className="form-group-inline" style={{width: '40%'}}>
+                        <div className="form-group-inline calc-controls">
                         <div className="form-group">
                             <label className="form-label"><h4>Количество порций</h4></label>
                             <input

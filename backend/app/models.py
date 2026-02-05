@@ -20,6 +20,7 @@ class User(Base):
     role=Column(Enum(UserRole), default=UserRole.student)
     balance = Column(Integer, default=1000)
     alergens = Column(String, default="")
+    preference_rating_threshold = Column(Integer, default=4)
 
 
 class Menu(Base):
@@ -95,6 +96,15 @@ class Review(Base):
     dish_id = Column(Integer, ForeignKey("dish.id"), index=True)
     rating = Column(Integer)
     text = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+
+class StudentPreference(Base):
+    __tablename__ = "student_preferences"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    dish_id = Column(Integer, ForeignKey("dish.id"), index=True)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
 

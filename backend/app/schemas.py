@@ -21,6 +21,7 @@ class User(BaseModel):
     role: UserRole
     balance: int
     alergens: str = ""
+    preference_rating_threshold: int = 4
     class Config:
         from_attributes = True
 class UserRoleUpdate(BaseModel):
@@ -166,3 +167,17 @@ class BuyMealResponse(BaseModel):
     meal_type: str
     breakfast_dishes: Optional[List[str]] = None
     lunch_dishes: Optional[List[str]] = None
+
+
+class PreferenceRatingThresholdUpdate(BaseModel):
+    preference_rating_threshold: int
+
+
+class StudentPreferenceResponse(BaseModel):
+    id: int
+    dish_id: int
+    dish_name: str
+    created_at: str
+    
+    class Config:
+        from_attributes = True

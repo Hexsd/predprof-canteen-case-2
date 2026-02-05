@@ -743,8 +743,31 @@ input[type="text"]:focus {
   color: var(--color-primary);
   margin-bottom: var(--spacing-lg);
   margin-top: var(--spacing-2xl);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 2px solid var(--color-border-subtle);
+  padding-bottom: calc(var(--spacing-sm));
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.cook-section h4 {
+  font-size: var(--font-size-xl);
+  color: var(--color-primary);
+  margin-top: var(--spacing-xl);
+  margin-bottom: var(--spacing-md);
+  font-weight: 600;
+}
+
+.cook-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-2xl);
+  background: var(--color-bg-white);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.form-group-inline.calc-controls {
+  width: 40%;
+  min-width: 260px;
 }
 
 .cook-section h3:first-of-type {
@@ -753,9 +776,9 @@ input[type="text"]:focus {
 
 .date-input-group {
   display: flex;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
   margin-bottom: var(--spacing-2xl);
-  align-items: flex-end;
+  align-items: center;
   flex-wrap: wrap;
 }
 
@@ -797,14 +820,17 @@ input[type="text"]:focus {
 
 .cook-table th,
 .cook-table td {
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
   text-align: left;
   border-bottom: 1px solid var(--color-border-light);
   font-size: var(--font-size-sm);
+  vertical-align: middle;
 }
 
 .cook-table th {
   font-weight: 600;
+  padding-top: calc(var(--spacing-md) / 2);
+  padding-bottom: calc(var(--spacing-md) / 2);
 }
 
 .cook-table tbody tr:hover {
@@ -816,8 +842,9 @@ input[type="text"]:focus {
   padding: var(--spacing-sm) var(--spacing-md);
   border: 2px solid var(--color-border-light);
   font-size: var(--font-size-sm);
-  width: 100%;
-  max-width: 150px;
+  width: auto;
+  min-width: 160px;
+  max-width: 100%;
   background: var(--color-bg-white);
   color: var(--color-text-primary);
 }
@@ -2006,19 +2033,17 @@ input[type="text"]:focus {
 }
 
 .alergen-checkbox {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
   cursor: pointer;
-  padding: var(--spacing-md);
-  background-color: var(--color-bg-light);
-  transition: all 0.2s ease;
-  border: 2px solid transparent;
+  padding: calc(var(--spacing-sm) + 2px) calc(var(--spacing-md));
+  background-color: transparent;
+  transition: all 0.15s ease;
 }
 
 .alergen-checkbox:hover {
-  background-color: var(--color-bg-main);
-  border-color: var(--color-primary);
+  background-color: var(--color-bg-light);
 }
 
 .alergen-checkbox input[type="checkbox"] {
@@ -2026,6 +2051,7 @@ input[type="text"]:focus {
   height: 18px;
   cursor: pointer;
   accent-color: var(--color-primary);
+  margin: 0;
 }
 
 .alergen-checkbox input[type="checkbox"]:disabled {
@@ -2197,4 +2223,126 @@ input[type="text"]:focus {
   .chart-wrapper {
     height: 300px;
   }
+}
+
+/* Preference tag on dish cards */
+.preference-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: var(--color-accent);
+  color: white;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  z-index: 10;
+}
+
+/* Preferences section in profile */
+.preferences-section {
+  margin-top: var(--spacing-2xl);
+  padding: var(--spacing-2xl);
+  background-color: var(--color-bg-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.preferences-section h3 {
+  font-size: var(--font-size-xl);
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.preferences-description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.6;
+}
+
+.preference-threshold-control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.threshold-label {
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.threshold-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.threshold-slider {
+  width: 100%;
+  height: 6px;
+  background: var(--color-primary);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.threshold-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.threshold-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  border: none;
+}
+
+.threshold-value {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-light);
+}
+
+.stars-display {
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+
+.threshold-number {
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.save-preferences-btn {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: fit-content;
+}
+
+.save-preferences-btn:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+}
+
+.save-preferences-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

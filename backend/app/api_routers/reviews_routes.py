@@ -43,8 +43,22 @@ def create_review(
     )
     db.add(db_review)
     db.commit()
-    db.refresh(db_review)
     
+    if review.rating >= current_user.preference_rating_threshold:
+        existing_preference = db.query(models.StudentPreference).filter(
+            models.StudentPreference.user_id == current_user.id,
+            models.StudentPreference.dish_id == review.dish_id
+        ).first()
+        
+        if not existing_preference:
+            preference = models.StudentPreference(
+                user_id=current_user.id,
+                dish_id=review.dish_id
+            )
+            db.add(preference)
+            db.commit()
+    
+    db.refresh(db_review)
     return review
 
 
@@ -107,3 +121,75 @@ def get_review_stats(
         "average_rating": float(result.avg_rating) if result.avg_rating else 0.0,
         "count": result.count
     }
+
+
+@router.get("/preferences", response_model=List[schemas.StudentPreferenceResponse])
+def get_student_preferences(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role != models.UserRole.student:
+        raise HTTPException(status_code=403, detail="Только студенты могут просматривать свои предпочтения")
+    
+    preferences = db.query(
+        models.StudentPreference,
+        models.Dish.name
+    ).join(
+        models.Dish,
+        models.StudentPreference.dish_id == models.Dish.id
+    ).filter(
+        models.StudentPreference.user_id == current_user.id
+    ).order_by(
+        models.StudentPreference.created_at.desc()
+    ).all()
+    
+    result = []
+    for preference, dish_name in preferences:
+        result.append({
+            "id": preference.id,
+            "dish_id": preference.dish_id,
+            "dish_name": dish_name,
+            "created_at": preference.created_at.isoformat()
+        })
+    
+    return result
+
+
+@router.delete("/preferences/{dish_id}")
+def remove_student_preference(
+    dish_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role != models.UserRole.student:
+        raise HTTPException(status_code=403, detail="Только студенты могут удалять свои предпочтения")
+    
+    preference = db.query(models.StudentPreference).filter(
+        models.StudentPreference.user_id == current_user.id,
+        models.StudentPreference.dish_id == dish_id
+    ).first()
+    
+    if not preference:
+        raise HTTPException(status_code=404, detail="Предпочтение не найдено")
+    
+    db.delete(preference)
+    db.commit()
+    
+    return {"message": "Предпочтение удалено"}
+
+
+@router.get("/preferences/{dish_id}/check")
+def check_dish_in_preferences(
+    dish_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role != models.UserRole.student:
+        raise HTTPException(status_code=403, detail="Только студенты могут проверять свои предпочтения")
+    
+    preference = db.query(models.StudentPreference).filter(
+        models.StudentPreference.user_id == current_user.id,
+        models.StudentPreference.dish_id == dish_id
+    ).first()
+    
+    return {"in_preferences": preference is not None}

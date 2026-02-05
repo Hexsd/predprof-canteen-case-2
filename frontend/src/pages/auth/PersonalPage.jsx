@@ -16,6 +16,8 @@ export default function UserLayout() {
   const [alergens, setAlergens] = useState([])
   const [selectedAlergens, setSelectedAlergens] = useState([])
   const [isLoadingAlergens, setIsLoadingAlergens] = useState(false)
+  const [preferenceThreshold, setPreferenceThreshold] = useState(4)
+  const [isLoadingPreferences, setIsLoadingPreferences] = useState(false)
 
   const SUBSCRIPTION_PRICE_PER_DAY = 300
 
@@ -23,6 +25,7 @@ export default function UserLayout() {
     if (user?.role === 'student') {
       fetchSubscriptionStatus()
       fetchAlergens()
+      setPreferenceThreshold(user.preference_rating_threshold || 4)
     }
   }, [user])
 
@@ -120,6 +123,27 @@ export default function UserLayout() {
       notify(error.response?.data?.detail || 'Ошибка при сохранении аллергенов', 'error')
     } finally {
       setIsLoadingAlergens(false)
+    }
+  }
+
+  const handleSavePreferenceThreshold = async () => {
+    if (preferenceThreshold < 1 || preferenceThreshold > 5) {
+      notify('Порог должен быть от 1 до 5 звезд', 'error')
+      return
+    }
+
+    setIsLoadingPreferences(true)
+    try {
+      await axios.put(`/api/personal/${user.id}/preference-threshold`, {
+        preference_rating_threshold: preferenceThreshold
+      })
+      notify('Параметры предпочтений успешно сохранены', 'success')
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      window.location.reload()
+    } catch (error) {
+      notify(error.response?.data?.detail || 'Ошибка при сохранении предпочтений', 'error')
+    } finally {
+      setIsLoadingPreferences(false)
     }
   }
 
@@ -323,6 +347,50 @@ export default function UserLayout() {
           </button>
         </div>
       )}
+
+      {user.role === 'student' && (
+        <div className="preferences-section">
+          <h3>Мои предпочтения</h3>
+          <p className="preferences-description">
+            Установите минимальную оценку, с какой блюдо будет добавляться в ваши избранные. 
+            При оставлении отзыва с оценкой выше или равной выбранному значению, блюдо будет помечено как избранное.
+          </p>
+          
+          <div className="preference-threshold-control">
+            <label htmlFor="preference-threshold" className="threshold-label">
+              Минимальная оценка для избранного:
+            </label>
+            <div className="threshold-input-group">
+              <input
+                id="preference-threshold"
+                type="range"
+                min="1"
+                max="5"
+                value={preferenceThreshold}
+                onChange={(e) => setPreferenceThreshold(parseInt(e.target.value))}
+                disabled={isLoadingPreferences}
+                className="threshold-slider"
+              />
+              <div className="threshold-value">
+                <span className="stars-display">
+                  {'⭐'.repeat(preferenceThreshold)}
+                </span>
+                <span className="threshold-number">{preferenceThreshold} звезд</span>
+              </div>
+            </div>
+
+            <button
+              onClick={handleSavePreferenceThreshold}
+              className="save-preferences-btn"
+              disabled={isLoadingPreferences}
+            >
+              {isLoadingPreferences ? 'Сохранение...' : 'Сохранить параметры'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
+
+
