@@ -48,4 +48,5 @@ with context_manager() as db:
     if not db.query(User).filter(User.email == admin_user.email).first():
         db.add(admin_user)
         db.add(cook_user)
+        db.add(user_user)
     done = True
