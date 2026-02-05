@@ -12,12 +12,16 @@ export default function UserLayout() {
   const [daysInput, setDaysInput] = useState('7')
   const [isLoading, setIsLoading] = useState(false)
   const [balanceInput, setBalanceInput] = useState('')
+  const [alergens, setAlergens] = useState([])
+  const [selectedAlergens, setSelectedAlergens] = useState([])
+  const [isLoadingAlergens, setIsLoadingAlergens] = useState(false)
 
   const SUBSCRIPTION_PRICE_PER_DAY = 300
 
   useEffect(() => {
     if (user?.role === 'student') {
       fetchSubscriptionStatus()
+      fetchAlergens()
     }
   }, [user])
 
@@ -76,6 +80,43 @@ export default function UserLayout() {
       notify(error.response?.data?.detail || 'Ошибка при пополнении баланса', 'error')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const fetchAlergens = async () => {
+    try {
+      const response = await axios.get('/api/cook/all')
+      setAlergens(response.data[2])
+      if (user?.alergens) {
+        setSelectedAlergens(user.alergens.split('#').filter(id => id !== ''))
+      }
+    } catch (error) {
+      console.error('Error fetching alergens:', error)
+    }
+  }
+
+  const handleAlergenToggle = (alergenId) => {
+    setSelectedAlergens(prev => {
+      if (prev.includes(String(alergenId))) {
+        return prev.filter(id => id !== String(alergenId))
+      } else {
+        return [...prev, String(alergenId)]
+      }
+    })
+  }
+
+  const handleSaveAlergens = async () => {
+    setIsLoadingAlergens(true)
+    try {
+      const alergenString = selectedAlergens.join('#')
+      await axios.put(`/api/personal/${user.id}/alergens`, {
+        alergens: alergenString
+      })
+      notify('Аллергены успешно сохранены', 'success')
+    } catch (error) {
+      notify(error.response?.data?.detail || 'Ошибка при сохранении аллергенов', 'error')
+    } finally {
+      setIsLoadingAlergens(false)
     }
   }
 
@@ -201,7 +242,7 @@ export default function UserLayout() {
                   Абонемент не активен
                 </p>
                 <p className="subscription-description">
-                  Купите абонемент и получайте завтрак и обед бесплатно!
+                  Вы можете купить абонемент на определенное количество дней.
                 </p>
 
                 <div className="subscription-form subscription-form--flat">
@@ -246,6 +287,37 @@ export default function UserLayout() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {user.role === 'student' && (
+        <div className="alergens-section">
+          <h3>Мои аллергены</h3>
+          <p className="alergens-description">
+            Отметьте аллергены, чтобы при просмотре меню видеть предупреждение о блюдах, содержащих опасные для вас ингредиенты.
+          </p>
+          
+          <div className="alergens-grid">
+            {alergens.map(alergen => (
+              <label key={alergen.id} className="alergen-checkbox">
+                <input
+                  type="checkbox"
+                  checked={selectedAlergens.includes(String(alergen.id))}
+                  onChange={() => handleAlergenToggle(alergen.id)}
+                  disabled={isLoadingAlergens}
+                />
+                <span className="checkbox-label">{alergen.name}</span>
+              </label>
+            ))}
+          </div>
+
+          <button
+            onClick={handleSaveAlergens}
+            className="save-alergens-btn"
+            disabled={isLoadingAlergens}
+          >
+            {isLoadingAlergens ? 'Сохранение...' : 'Сохранить аллергены'}
+          </button>
         </div>
       )}
     </div>

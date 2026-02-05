@@ -19,6 +19,7 @@ class User(Base):
     birth_date = Column(Date)
     role=Column(Enum(UserRole), default=UserRole.student)
     balance = Column(Integer, default=1000)
+    alergens = Column(String, default="")
 
 
 class Menu(Base):
@@ -55,7 +56,9 @@ class Payment(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     amount = Column(Integer)
     type = Column(String)
-    date = Column(Date)
+    purchase_date = Column(Date)
+    delivery_date = Column(Date, index=True)
+    
 class Alergen(Base):
     __tablename__ = "alergen"
 

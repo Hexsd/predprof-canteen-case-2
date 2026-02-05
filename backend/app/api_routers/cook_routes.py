@@ -6,6 +6,7 @@ from .. import models, schemas, auth
 from ..database import get_db
 from datetime import datetime
 from datetime import date as DATE
+from .notifications_routes import send_notification
 
 router = APIRouter(prefix="/api/cook", tags=["cook"])
 
@@ -112,6 +113,15 @@ def new_application(
     print(application)
     db.add(models.Application(date=DATE.today(), user_id=current_user.id, list_of_products=application.list_of_products, amount_of_products=application.amount_of_products, price_of_products=application.price_of_products,status="На рассмотрении"))
     db.commit()
+    
+    admins = db.query(models.User).filter(models.User.role == models.UserRole.admin).all()
+    for admin in admins:
+        send_notification(
+            admin.id, 
+            f"Повар {current_user.name} создал новую заявку на рассмотрение",
+            "application"
+        )
+    
     return
 
 @router.get("/my_apps", response_model=List[schemas.Application])
