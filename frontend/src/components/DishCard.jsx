@@ -94,7 +94,7 @@ export default function DishCard({ dish, products = [] }) {
           )}
           {isInPreferences && (
             <div className="preference-tag">
-              Избранное
+              Вам нравится
             </div>
           )}
         </div>
