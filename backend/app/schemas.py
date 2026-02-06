@@ -181,3 +181,8 @@ class StudentPreferenceResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+class MealHistorySend(BaseModel):
+    meal_type: str
+    dishes: str

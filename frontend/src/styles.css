@@ -809,7 +809,7 @@ input[type="text"]:focus {
   font-weight: 600;
 }
 
-.cook-section h3 {
+.cook-section h3:not(.except) {
   font-size: var(--font-size-2xl);
   color: var(--color-primary);
   margin-bottom: var(--spacing-lg);
@@ -2483,4 +2483,19 @@ input[type="text"]:focus {
   font-size: var(--font-size-base);
   color: var(--color-text-primary);
   font-weight: 500;
+}
+
+
+
+
+.cook-group-inline {
+  display: flex;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  flex-wrap: wrap;
+}
+
+.cook-group-inline .cook-group {
+  flex: 1;
+  min-width: 200px;
 }

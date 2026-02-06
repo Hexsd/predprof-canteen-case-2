@@ -24,7 +24,7 @@ def get_all(
     menu = db.query(models.Menu).all()
     if not dishes and not products and not alergens and not menu:
         raise HTTPException(
-            status_code=404,
+            status_code=400,
             detail="Item not found"
         )
     return dishes, products, alergens, menu
@@ -87,7 +87,7 @@ def menu(
     menu = db.query(models.Menu).filter(models.Menu.date == date).first()
     if not menu:
         raise HTTPException(
-            status_code=404,
+            status_code=400,
             detail="Item not found"
         )
     logger.debug("Requested menu date: %s", date)
@@ -135,7 +135,38 @@ def my_apps(
     applications = db.query(models.Application).filter(models.Application.user_id==current_user.id).all()
     if not applications:
         raise HTTPException(
-            status_code=404,
+            status_code=400,
             detail="Item not found"
         )
     return applications
+
+
+@router.get('/meal_histories_breakfast_{date}', response_model=List[schemas.MealHistorySend])
+def mhbd(
+    date: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    date = datetime.strptime(date, "%Y-%m-%d").date()
+    breakfast_meals = db.query(models.MealHistory).filter(models.MealHistory.date == date, models.MealHistory.meal_type == 'breakfast').all()
+    if not breakfast_meals:
+        raise HTTPException(
+            status_code=400,
+            detail="Item not found"
+        )
+    return breakfast_meals
+
+@router.get('/meal_histories_lunch_{date}', response_model=List[schemas.MealHistorySend])
+def mhld(
+    date: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    date = datetime.strptime(date, "%Y-%m-%d").date()
+    lunch_meals = db.query(models.MealHistory).filter(models.MealHistory.date == date, models.MealHistory.meal_type == 'lunch').all()
+    if not lunch_meals:
+        raise HTTPException(
+            status_code=400,
+            detail="Item not found"
+        )
+    return lunch_meals

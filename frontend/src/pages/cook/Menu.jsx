@@ -24,6 +24,9 @@ export default function Menu() {
     const navigate = useNavigate()
     const { notify } = useNotification()
 
+    const [breakfastHistory, setBreakfastHistory] = useState([]);
+    const [lunchHistory, setLunchHistory] = useState([]);
+
     const [portions, setPortions] = useState(1);
     const [usedProducts, setUsedProducts] = useState({});
     const [considerCookedMeals, setCCM] = useState(true);
@@ -53,6 +56,8 @@ export default function Menu() {
     }, [menu])
     const fetchByDate = async (e) => {
         e.preventDefault();
+        fetchHistoryBr();
+        fetchHistoryLu();
         try {
             const response = await axios.get(`/api/cook/menu_${menuDate}`);
             setMenu(response.data);
@@ -72,6 +77,24 @@ export default function Menu() {
             navigate('/cook/menu')
         } catch (err) {
             notify(err.response?.data?.detail || 'Ошибка отправки данных в БД', 'error')
+        }
+    }
+
+    const fetchHistoryBr = async () => {
+        try {
+            const response = await axios.get(`/api/cook/meal_histories_breakfast_${menuDate}`)
+            setBreakfastHistory(response.data);
+        } catch (err) {
+            //notify(err.response?.data?.detail || 'Не получилось извлечь данные о выданных блюдах', 'error')
+        }
+    }
+
+    const fetchHistoryLu = async () => {
+        try {
+            const response = await axios.get(`/api/cook/meal_histories_lunch_${menuDate}`)
+            setLunchHistory(response.data);
+        } catch (err) {
+            //notify(err.response?.data?.detail || 'Не получилось извлечь данные о выданных блюдах', 'error')
         }
     }
 
@@ -114,88 +137,195 @@ export default function Menu() {
     return (
         <div className="cook-container">
             <div className="cook-section">
-                <h2>Управление меню</h2>
-                <form onSubmit={fetchByDate} className="date-input-group">
-                    <input
-                        type="date"
-                        value={menuDate}
-                        onChange={(e) => setMenuDate(e.target.value)}
-                        required
-                        className="form-input"
-                    />
-                    <button type="submit" className="form-button">
-                        Выбрать меню за эту дату
-                    </button>
-                </form>
+                <div className="cook-group-inline">
+                    <div className="cook-group">
+                        <h2>Управление меню</h2>
+                        <form onSubmit={fetchByDate} className="date-input-group">
+                            <input
+                                type="date"
+                                value={menuDate}
+                                onChange={(e) => setMenuDate(e.target.value)}
+                                required
+                                className="form-input"
+                            />
+                            <button type="submit" className="form-button">
+                                Выбрать меню за эту дату
+                            </button>
+                        </form>
+                    </div>
+                    <div className="cook-group"><h2>Учёт выданных блюд</h2></div>
+                </div>
+                
             </div>
             {!fetchedMenu && (
-                <h3>Выберите дату на которую хотите посмотреть/создать меню</h3>
+                <div className="cook-group-inline">
+                    <div className="cook-group">
+                        <h3>Выберите дату на которую хотите посмотреть/создать меню</h3>
+                    </div>
+                    <div className="cook-group">
+                        <h3>После выбора даты здесь отобразятся выданные завтраки и обеды</h3>
+                    </div>
+                </div>
             )}
             {fetchedMenu && (
                 <div className="cook-section">
-                    <h3>Завтрак</h3>
-                    <form onSubmit={confirmMenu}>
-                        <table className="cook-table">
-                            <thead>
-                                <tr>
-                                    <th>Номер</th>
-                                    <th>Блюдо</th>
-                                    <th>Убрать позицию</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {menu.breakfast != "" && menu.breakfast.split('#').map((item, index) => (
-                                    <tr key={index}>
-                                        <td>{index + 1}</td>
-                                        <td>
-                                            <select value={parseInt(item)} onChange={(e) => changeDishBreakfast(index, String(e.target.value))}>
-                                                {dishes.map((dish, indexx) => (
-                                                    <option key={dish.id} value={dish.id}>{dish.name}</option>
-                                                ))}
-                                            </select>
-                                        </td>
-                                        <td><button type="button" onClick={() => removeBreakfastDish(index)} className="remove-btn">Удалить</button></td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        <button type="button" onClick={() => (setMenu({ ...menu, breakfast: menu.breakfast === "" ? "1" : menu.breakfast + "#1" }))} className="add-dish-btn">
-                            + Добавить блюдо
-                        </button>
+                            <form onSubmit={confirmMenu}>
 
-                        <h3>Обед</h3>
-                        <table className="cook-table">
-                            <thead>
-                                <tr>
-                                    <th>Номер</th>
-                                    <th>Блюдо</th>
-                                    <th>Убрать позицию</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {menu.lunch != "" && menu.lunch.split('#').map((item, index) => (
-                                    <tr key={index}>
-                                        <td>{index + 1}</td>
-                                        <td>
-                                            <select value={parseInt(item)} onChange={(e) => changeDishLunch(index, String(e.target.value))}>
-                                                {dishes.map((dish, indexx) => (
-                                                    <option key={dish.id} value={dish.id}>{dish.name}</option>
-                                                ))}
-                                            </select>
-                                        </td>
-                                        <td><button type="button" onClick={() => removeLunchDish(index)} className="remove-btn">Удалить</button></td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
 
-                        <button type="button" onClick={() => (setMenu({ ...menu, lunch: menu.lunch === "" ? "1" : menu.lunch + "#1" }))} className="add-dish-btn">
-                            + Добавить блюдо
-                        </button>
-                    </form>
-                    <button onClick={confirmMenu} className="save-button">
-                        Сохранить изменения
-                    </button>
+                                <div className="cook-group-inline">
+                                    <div className="cook-group">
+                                        <h3>Завтрак</h3>
+                                
+                                        <table className="cook-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Номер</th>
+                                                    <th>Блюдо</th>
+                                                    <th>Убрать позицию</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {menu.breakfast != "" && menu.breakfast.split('#').map((item, index) => (
+                                                    <tr key={index}>
+                                                        <td>{index + 1}</td>
+                                                        <td>
+                                                            <select value={parseInt(item)} onChange={(e) => changeDishBreakfast(index, String(e.target.value))}>
+                                                                {dishes.map((dish, indexx) => (
+                                                                    <option key={dish.id} value={dish.id}>{dish.name}</option>
+                                                                ))}
+                                                            </select>
+                                                        </td>
+                                                        <td><button type="button" onClick={() => removeBreakfastDish(index)} className="remove-btn">Удалить</button></td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        <button type="button" onClick={() => (setMenu({ ...menu, breakfast: menu.breakfast === "" ? "1" : menu.breakfast + "#1" }))} className="add-dish-btn">
+                                            + Добавить блюдо
+                                        </button>
+                                    </div>
+                                    <div className="cook-group">
+                                        <h3>Завтрак (выдано {menu.given_breakfasts})</h3>
+
+                                        <table className="cook-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Блюдо</th>
+                                                    <th>Число блюд</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {(()=>{
+                                                    //console.log(breakfastHistory);
+                                                    let dishes_joined = []
+                                                    let unique_dishes_amounts = {};
+                                                    breakfastHistory.forEach(element => {
+                                                        dishes_joined.push(element.dishes)
+                                                    });
+                                                    let unique_dishes = dishes_joined.length!=0 ? new Set(dishes_joined.join('#').split('#')) : []
+                                                    Array.from(unique_dishes).forEach(element => {
+                                                        unique_dishes_amounts[element] = dishes_joined.join('#').split('#').filter(item => item == element).length;
+                                                    })
+                                                    console.log(unique_dishes_amounts);
+
+
+                                                    return (
+                                                        <>
+                                                            {Object.entries(unique_dishes_amounts).map(([key, value]) => {
+                                                                return(
+                                                                <tr>
+                                                                    <td>{findposition(parseInt(key), dishes).name}</td>
+                                                                    <td>{value}</td>
+                                                                </tr>
+                                                                )
+                                                            })}
+                                                        </>
+                                                    )
+                                                })()}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div className="cook-group-inline">
+                                    <div className="cook-group">
+                                        <h3>Обед</h3>
+                                        <table className="cook-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Номер</th>
+                                                    <th>Блюдо</th>
+                                                    <th>Убрать позицию</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {menu.lunch != "" && menu.lunch.split('#').map((item, index) => (
+                                                    <tr key={index}>
+                                                        <td>{index + 1}</td>
+                                                        <td>
+                                                            <select value={parseInt(item)} onChange={(e) => changeDishLunch(index, String(e.target.value))}>
+                                                                {dishes.map((dish, indexx) => (
+                                                                    <option key={dish.id} value={dish.id}>{dish.name}</option>
+                                                                ))}
+                                                            </select>
+                                                        </td>
+                                                        <td><button type="button" onClick={() => removeLunchDish(index)} className="remove-btn">Удалить</button></td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+
+                                        <button type="button" onClick={() => (setMenu({ ...menu, lunch: menu.lunch === "" ? "1" : menu.lunch + "#1" }))} className="add-dish-btn">
+                                            + Добавить блюдо
+                                        </button>
+                                    </div>
+                                    <div className="cook-group">
+                                        <h3>Обед (выдано {menu.given_lunches})</h3>
+
+                                        <table className="cook-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Блюдо</th>
+                                                    <th>Число блюд</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {(()=>{
+                                                    //console.log(breakfastHistory);
+                                                    let dishes_joined = []
+                                                    let unique_dishes_amounts = {};
+                                                    lunchHistory.forEach(element => {
+                                                        dishes_joined.push(element.dishes)
+                                                    });
+                                                    let unique_dishes = dishes_joined.length!=0 ? new Set(dishes_joined.join('#').split('#')) : []
+                                                    Array.from(unique_dishes).forEach(element => {
+                                                        unique_dishes_amounts[element] = dishes_joined.join('#').split('#').filter(item => item == element).length;
+                                                    })
+                                                    console.log(unique_dishes_amounts);
+
+
+                                                    return (
+                                                        <>
+                                                            {Object.entries(unique_dishes_amounts).map(([key, value]) => {
+                                                                return(
+                                                                <tr>
+                                                                    <td>{findposition(parseInt(key), dishes).name}</td>
+                                                                    <td>{value}</td>
+                                                                </tr>
+                                                                )
+                                                            })}
+                                                        </>
+                                                    )
+                                                })()}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <button onClick={confirmMenu} className="save-button">
+                                    Сохранить изменения
+                                </button>
+                            </form>
                     {menu.breakfast !== "" && menu.lunch !== "" && (
                         <>
                             <h3>Расчет продуктов</h3>
