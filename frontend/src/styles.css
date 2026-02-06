@@ -1004,6 +1004,22 @@ input[type="text"]:focus {
   background-color: var(--color-primary-dark);
 }
 
+.cook-group {
+  flex: 1;
+  min-width: 300px;
+  padding: var(--spacing-xl);
+  background: var(--color-bg-white);
+  border: 2px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.cook-group-inline {
+  display: flex;
+  gap: var(--spacing-2xl);
+  margin-bottom: var(--spacing-2xl);
+  flex-wrap: wrap;
+}
+
 .form-group-inline {
   display: flex;
   gap: var(--spacing-lg);
