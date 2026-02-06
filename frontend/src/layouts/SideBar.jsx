@@ -20,6 +20,9 @@ export default function SideBar({ isOpen = true, onToggle }) {
       { path: '/cook/products', label: 'Контроль продуктов', icon: <i className="fa-solid fa-utensils"></i> },
       { path: '/cook/menu', label: 'Управление меню', icon: <i className="fa-solid fa-utensils"></i> },
       { path: '/cook/applications', label: 'Заявки на закупку', icon: <i className="fa-solid fa-inbox"></i> }
+    ] : []),
+    ...(currentUser?.role === 'student' ? [
+      { path: '/history', label: 'История покупок', icon: <i className="fa-solid fa-clock-rotate-left"></i> }
     ] : [])
   ]
 

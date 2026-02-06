@@ -26,7 +26,7 @@ export default function Index() {
   const BREAKFAST_PRICE = 150
   const LUNCH_PRICE = 300
   const SUBSCRIPTION_PRICE_PER_DAY = 50
-  
+
   const [dishes, setDishes] = useState([])
   const [products, setProducts] = useState([])
   const [alergens, setAlergens] = useState([])
@@ -52,15 +52,15 @@ export default function Index() {
   }
 
   const fetchAll = async () => {
-          try {
-            const response = await axios.get('/api/cook/all');
-            setDishes(response.data[0]);
-            setProducts(response.data[1]);
-            setAlergens(response.data[2]);
-          } catch (error) {
-            logger.error('Error fetching products and dishes:', error);
-          }
-      }
+    try {
+      const response = await axios.get('/api/cook/all');
+      setDishes(response.data[0]);
+      setProducts(response.data[1]);
+      setAlergens(response.data[2]);
+    } catch (error) {
+      logger.error('Error fetching products and dishes:', error);
+    }
+  }
 
   const fetchSubscriptionStatus = async () => {
     try {
@@ -77,21 +77,21 @@ export default function Index() {
     try {
       const response = await axios.get('/api/users/meal/status')
       setMealStatus(response.data)
-      
+
 
       const historyResponse = await axios.get('/api/users/meal/history?limit=10')
       const history = historyResponse.data
-      
+
       const today = new Date().toISOString().split('T')[0]
       const breakfastEntries = history.filter(h => h.meal_type === 'breakfast' && h.date.startsWith(today))
       const lunchEntries = history.filter(h => h.meal_type === 'lunch' && h.date.startsWith(today))
-      
+
       if (breakfastEntries.length > 0) {
         setBreakfastSource(breakfastEntries[0].source)
       } else {
         setBreakfastSource(null)
       }
-      
+
       if (lunchEntries.length > 0) {
         setLunchSource(lunchEntries[0].source)
       } else {
@@ -151,8 +151,8 @@ export default function Index() {
   }
 
   const formatMonthYear = (date) => {
-    const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
-                    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+    const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+      'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
     return `${months[date.getMonth()]} ${date.getFullYear()}`;
   }
 
@@ -162,7 +162,7 @@ export default function Index() {
       notify('Только ученики могут покупать завтрак', 'error')
       return
     }
-    
+
     if (user.balance < BREAKFAST_PRICE) {
       notify(`Недостаточно средств. Необходимо ${BREAKFAST_PRICE} ₽, у вас ${user.balance} ₽`, 'error')
       return
@@ -172,7 +172,7 @@ export default function Index() {
       const dateStr = selectedDate.toISOString().split('T')[0]
       const response = await axios.post(`/api/users/buy/breakfast?delivery_date=${dateStr}`)
       notify(`Завтрак куплен! Баланс: ${response.data.user.balance} ₽`, 'success')
-      
+
       const breakfastDishes = response.data.breakfast_dishes || []
       navigate('/review', {
         state: {
@@ -190,9 +190,9 @@ export default function Index() {
       const response = await axios.post('/api/users/meal/breakfast-with-subscription')
       const mealType = response.data.meal_type
       const dishes = response.data.dishes || []
-      
+
       notify('Завтрак получен! Оставьте отзыв', 'success')
-      
+
       navigate('/review', {
         state: {
           meal_type: mealType,
@@ -210,7 +210,7 @@ export default function Index() {
       notify('Только ученики могут покупать обед', 'error')
       return
     }
-    
+
     if (user.balance < LUNCH_PRICE) {
       notify(`Недостаточно средств. Необходимо ${LUNCH_PRICE} ₽, у вас ${user.balance} ₽`, 'error')
       return
@@ -220,7 +220,7 @@ export default function Index() {
       const dateStr = selectedDate.toISOString().split('T')[0]
       const response = await axios.post(`/api/users/buy/lunch?delivery_date=${dateStr}`)
       notify(`Обед куплен! Баланс: ${response.data.user.balance} ₽`, 'success')
-      
+
       const lunchDishes = response.data.lunch_dishes || []
       navigate('/review', {
         state: {
@@ -238,9 +238,9 @@ export default function Index() {
       const response = await axios.post('/api/users/meal/lunch-with-subscription')
       const mealType = response.data.meal_type
       const dishes = response.data.dishes || []
-      
+
       notify('Обед получен! Оставьте отзыв', 'success')
-      
+
       navigate('/review', {
         state: {
           meal_type: mealType,
@@ -255,8 +255,7 @@ export default function Index() {
   function GetName(table, id) {
     let name = "";
     table.forEach(element => {
-      if (element.id==id)
-      {
+      if (element.id == id) {
         name = element.name;
         return
       }
@@ -267,16 +266,11 @@ export default function Index() {
   return (
     <div>
       <h2 className="page-title">Меню столовой</h2>
-      
+
       {user?.role === 'student' && (
         <div className="index-info-section">
-          <button 
-            onClick={() => navigate('/history')}
-            className="history-btn"
-            title="Посмотреть историю покупок"
-          >
-            История покупок
-          </button>
+
+
           {subscriptionActive && subscription && (
             <div className="subscription-banner">
               <span className="subscription-badge">Абонемент активен</span>
@@ -294,23 +288,22 @@ export default function Index() {
         <button onClick={goToPreviousWeek} className="week-nav-btn week-nav-prev">
           ‹‹
         </button>
-        
+
         <div className="week-dates">
           {weekDates.map((date) => (
             <button
               key={date.toISOString()}
               onClick={() => selectDate(date)}
-              className={`week-date-btn ${
-                date.toISOString().split('T')[0] === selectedDate.toISOString().split('T')[0]
+              className={`week-date-btn ${date.toISOString().split('T')[0] === selectedDate.toISOString().split('T')[0]
                   ? 'active'
                   : ''
-              }`}
+                }`}
             >
               {formatDate(date)}
             </button>
           ))}
         </div>
-        
+
         <button onClick={goToNextWeek} className="week-nav-btn week-nav-next">
           ››
         </button>
@@ -320,61 +313,60 @@ export default function Index() {
         <div className="menu-container">
           <div className="menu-section">
             <h3>Завтрак</h3>
-                {(() => {
-                  let unique_dishes_amounts = {};
-                  let unique_dishes_br = new Set(menu.breakfast.split('#'))
-                  let able_to_fulfill = [];
-                  Array.from(unique_dishes_br).forEach(element => {
-                    unique_dishes_amounts[element]=menu.breakfast.split('#').filter(item => item==element).length;
-                  });
-                  
+            {(() => {
+              let unique_dishes_amounts = {};
+              let unique_dishes_br = new Set(menu.breakfast.split('#'))
+              let able_to_fulfill = [];
+              Array.from(unique_dishes_br).forEach(element => {
+                unique_dishes_amounts[element] = menu.breakfast.split('#').filter(item => item == element).length;
+              });
 
-                  return (
-                    <>
-                      <div className="dishes-scroll">
-                        <div className="dishes-container">
-                          {menu.breakfast.split('#').map((dishId, index) => {
-                              const dish = dishes.find(d => d.id === parseInt(dishId))
-                              if (!dish) return null
-                              else {
-                                if (unique_dishes_amounts[dishId]>dish.amount)
-                                {
-                                  able_to_fulfill.push(false)
-                                }
-                              }
-                              return (
-                                <DishCard
-                                  key={index}
-                                  dish={dish}
-                                  products={products}
-                                />
-                              )
-                            })}
-                            {/* {(()=>{if (able_to_fulfill.includes(false)) {notify('В данный момент блюд недостаточно чтобы вы могли получить завтрак', 'error')};})()} */}
-                        </div>
-                      </div>
-                      <button
-                        onClick={subscriptionActive && !breakfastSource ? handleGetBreakfastWithSubscription : handleBuyBreakfast}
-                        className={`meal-buy-btn ${(!user || user.role !== 'student') ? 'disabled' : ''}`}
-                        disabled={!user || user.role !== 'student' || able_to_fulfill.includes(false)}
-                        >
-                        {subscriptionActive && !breakfastSource ? 'Получить завтрак' : `Купить завтрак - ${BREAKFAST_PRICE} ₽`}
-                      </button>
-                    </>
-                  )
-                })()}
+
+              return (
+                <>
+                  <div className="dishes-scroll">
+                    <div className="dishes-container">
+                      {menu.breakfast.split('#').map((dishId, index) => {
+                        const dish = dishes.find(d => d.id === parseInt(dishId))
+                        if (!dish) return null
+                        else {
+                          if (unique_dishes_amounts[dishId] > dish.amount) {
+                            able_to_fulfill.push(false)
+                          }
+                        }
+                        return (
+                          <DishCard
+                            key={index}
+                            dish={dish}
+                            products={products}
+                          />
+                        )
+                      })}
+                      {/* {(()=>{if (able_to_fulfill.includes(false)) {notify('В данный момент блюд недостаточно чтобы вы могли получить завтрак', 'error')};})()} */}
+                    </div>
+                  </div>
+                  <button
+                    onClick={subscriptionActive && !breakfastSource ? handleGetBreakfastWithSubscription : handleBuyBreakfast}
+                    className={`meal-buy-btn ${(!user || user.role !== 'student') ? 'disabled' : ''}`}
+                    disabled={!user || user.role !== 'student' || able_to_fulfill.includes(false)}
+                  >
+                    {subscriptionActive && !breakfastSource ? 'Получить завтрак' : `Купить завтрак - ${BREAKFAST_PRICE} ₽`}
+                  </button>
+                </>
+              )
+            })()}
           </div>
 
           <div className="menu-section">
             <h3>Обед</h3>
-            {(()=>{
+            {(() => {
               let unique_dishes_amounts = {};
               let unique_dishes_br = new Set(menu.lunch.split('#'))
               let able_to_fulfill = [];
               Array.from(unique_dishes_br).forEach(element => {
-                unique_dishes_amounts[element]=menu.lunch.split('#').filter(item => item==element).length;
+                unique_dishes_amounts[element] = menu.lunch.split('#').filter(item => item == element).length;
               });
-              
+
 
               return (
                 <>
@@ -384,8 +376,7 @@ export default function Index() {
                         const dish = dishes.find(d => d.id === parseInt(dishId))
                         if (!dish) return null
                         else {
-                          if (unique_dishes_amounts[dishId]>dish.amount)
-                          {
+                          if (unique_dishes_amounts[dishId] > dish.amount) {
                             able_to_fulfill.push(false)
                           }
                         }

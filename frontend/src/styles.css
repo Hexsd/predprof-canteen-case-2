@@ -340,7 +340,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-primary);
+  background-color: var(--color-primary);
 }
 
 .auth-box {
