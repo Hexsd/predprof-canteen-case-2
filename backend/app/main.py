@@ -20,7 +20,10 @@ for i in range(30):
 
 
 from .set_models import done
-print(f"Initial data setup done: {done}")
+import logging
+
+logger = logging.getLogger(__name__)
+logger.info("Initial data setup done: %s", done)
 
 app = FastAPI()
 

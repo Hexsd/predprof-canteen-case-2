@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNotification } from '../hooks/useNotification'
+import logger from '../utils/logger'
 
 export default function ReviewsViewModal({ dishId, dishName, onClose }) {
   const [reviews, setReviews] = useState([])
@@ -15,12 +16,12 @@ export default function ReviewsViewModal({ dishId, dishName, onClose }) {
           axios.get(`/api/reviews/dish/${dishId}`),
           axios.get(`/api/reviews/stats/${dishId}`)
         ])
-        
+
         setReviews(reviewsRes.data)
         setStats(statsRes.data)
         setLoading(false)
       } catch (error) {
-        console.error('Error fetching reviews:', error)
+        logger.error('Error fetching reviews:', error)
         notify('Ошибка загрузки отзывов', 'error')
         setLoading(false)
       }
@@ -30,7 +31,15 @@ export default function ReviewsViewModal({ dishId, dishName, onClose }) {
   }, [dishId, notify])
 
   const renderStars = (rating) => {
-    return '⭐'.repeat(rating) + '☆'.repeat(5 - rating)
+    const stars = []
+    for (let i = 0; i < 5; i++) {
+      if (i < rating) {
+        stars.push(<i key={i} className="fa-solid fa-star"></i>)
+      } else {
+        stars.push(<i key={i} className="fa-regular fa-star"></i>)
+      }
+    }
+    return stars
   }
 
   return (

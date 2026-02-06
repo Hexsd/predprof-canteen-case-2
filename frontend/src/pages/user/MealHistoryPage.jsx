@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { useNotification } from '../../hooks/useNotification'
+import logger from '../../utils/logger'
 
 export default function MealHistoryPage() {
   const [history, setHistory] = useState([])
@@ -25,7 +26,7 @@ export default function MealHistoryPage() {
         
         setLoading(false)
       } catch (error) {
-        console.error('Error fetching history:', error)
+        logger.error('Error fetching history:', error)
         notify('Ошибка загрузки истории', 'error')
         setLoading(false)
       }

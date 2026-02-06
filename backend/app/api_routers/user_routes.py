@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import update
 from typing import List
 from .. import models, schemas, auth
 from ..database import get_db
@@ -61,57 +62,106 @@ def buy_breakfast(
     today = date.today()
     meal_delivery_date = delivery_date if delivery_date else today
     
-    payment = models.Payment(
-        user_id=current_user.id,
-        amount=BREAKFAST_PRICE,
-        type="breakfast",
-        purchase_date=today,
-        delivery_date=meal_delivery_date
-    )
-    db.add(payment)
-    
-    current_user.balance -= BREAKFAST_PRICE
-    
-    menu = db.query(models.Menu).filter(models.Menu.date == meal_delivery_date).first()
-    if menu:
-        menu.given_breakfasts += 1
-        breakfast_dishes = menu.breakfast.split('#') if menu.breakfast else []
-    else:
-        breakfast_dishes = []
-    
-    meal_record = db.query(models.MealRecord).filter(
-        models.MealRecord.user_id == current_user.id,
-        models.MealRecord.date == meal_delivery_date
-    ).first()
-    
-    if not meal_record:
-        meal_record = models.MealRecord(
+    # Start atomic transaction block
+    try:
+        # 1. Check Balance
+        if current_user.balance < BREAKFAST_PRICE:
+            raise HTTPException(status_code=400, detail="Недостаточно средств")
+        
+        # 2. Get Menu
+        menu = db.query(models.Menu).filter(models.Menu.date == meal_delivery_date).first()
+        if menu:
+            menu.given_breakfasts += 1
+            breakfast_dishes = menu.breakfast.split('#') if menu.breakfast else []
+        else:
+            breakfast_dishes = []
+
+        # 3. Check and Update Stock (Atomic)
+        # We need to lock the rows or use atomic updates. Since SQLite has limited locking, 
+        # we will rely on checking the count in the update statement or fetching with lock if using PostgreSQL.
+        # Assuming typical SQL behavior, we can check row count after update or use with_for_update.
+        # Given the context, we'll try to update and check affected rows or pre-check with lock behavior.
+        # For simplicity and robustness here:
+        
+        for dish_id in breakfast_dishes:
+            # We want to decrement amount ONLY if amount > 0.
+            # update returns the number of matched rows.
+            result = db.execute(
+                update(models.Dish)
+                .where(models.Dish.id == int(dish_id))
+                .where(models.Dish.amount > 0)
+                .values(amount=models.Dish.amount - 1)
+            )
+            
+            # If rowcount is 0, it means either dish doesn't exist or amount was <= 0
+            # Since we know dish exists from menu (mostly), it implies 0 stock.
+            if result.rowcount == 0:
+                # Check if dish actually exists to distinguish between "not found" vs "no stock"
+                dish_exists = db.query(models.Dish).filter(models.Dish.id == int(dish_id)).first()
+                if not dish_exists:
+                     # This might happen if menu has invalid ID, skip or error.
+                     # Better to error for consistency.
+                     raise HTTPException(status_code=500, detail=f"Блюдо {dish_id} не найдено")
+                
+                # If existing but update failed, it means Out of Stock
+                raise HTTPException(status_code=400, detail="Невозможно укомплектовать завтрак: закончились продукты")
+
+        # 4. Process Payment
+        # Deduct balance
+        # Note: We are modifying the instance freshly loaded in this transaction context
+        current_user.balance -= BREAKFAST_PRICE
+        
+        payment = models.Payment(
             user_id=current_user.id,
-            date=meal_delivery_date,
-            breakfast="completed",
-            lunch=None
+            amount=BREAKFAST_PRICE,
+            type="breakfast",
+            purchase_date=today,
+            delivery_date=meal_delivery_date
         )
-        db.add(meal_record)
-    else:
-        meal_record.breakfast = "completed"
-    
-    meal_history = models.MealHistory(
-        user_id=current_user.id,
-        meal_type="breakfast",
-        date=meal_delivery_date,
-        source="purchased",
-        dishes="#".join(str(d) for d in breakfast_dishes)
-    )
-    db.add(meal_history)
-    
-    db.commit()
-    db.refresh(current_user)
-    
-    return {
-        "user": current_user,
-        "meal_type": "breakfast",
-        "breakfast_dishes": breakfast_dishes
-    }
+        db.add(payment)
+        
+        # 5. Record Meal Status
+        meal_record = db.query(models.MealRecord).filter(
+            models.MealRecord.user_id == current_user.id,
+            models.MealRecord.date == meal_delivery_date
+        ).with_for_update().first() # Lock this record if it exists
+        
+        if not meal_record:
+            meal_record = models.MealRecord(
+                user_id=current_user.id,
+                date=meal_delivery_date,
+                breakfast="completed",
+                lunch=None
+            )
+            db.add(meal_record)
+        else:
+            meal_record.breakfast = "completed"
+        
+        # 6. History
+        meal_history = models.MealHistory(
+            user_id=current_user.id,
+            meal_type="breakfast",
+            date=meal_delivery_date,
+            source="purchased",
+            dishes="#".join(str(d) for d in breakfast_dishes)
+        )
+        db.add(meal_history)
+        
+        # FINAL COMMIT - All or Nothing
+        db.commit()
+        db.refresh(current_user)
+        
+        return {
+            "user": current_user,
+            "meal_type": "breakfast",
+            "breakfast_dishes": breakfast_dishes
+        }
+
+    except Exception as e:
+        db.rollback()
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/buy/lunch", response_model=schemas.BuyMealResponse)
 def buy_lunch(
@@ -128,58 +178,81 @@ def buy_lunch(
     
     today = date.today()
     meal_delivery_date = delivery_date if delivery_date else today
-    
-    payment = models.Payment(
-        user_id=current_user.id,
-        amount=LUNCH_PRICE,
-        type="lunch",
-        purchase_date=today,
-        delivery_date=meal_delivery_date
-    )
-    db.add(payment)
-    
-    current_user.balance -= LUNCH_PRICE
-    
-    menu = db.query(models.Menu).filter(models.Menu.date == meal_delivery_date).first()
-    if menu:
-        menu.given_lunches += 1
-        lunch_dishes = menu.lunch.split('#') if menu.lunch else []
-    else:
-        lunch_dishes = []
-    
-    meal_record = db.query(models.MealRecord).filter(
-        models.MealRecord.user_id == current_user.id,
-        models.MealRecord.date == meal_delivery_date
-    ).first()
-    
-    if not meal_record:
-        meal_record = models.MealRecord(
+
+    try:
+        if current_user.balance < LUNCH_PRICE:
+            raise HTTPException(status_code=400, detail="Недостаточно средств")
+
+        menu = db.query(models.Menu).filter(models.Menu.date == meal_delivery_date).first()
+        if menu:
+            menu.given_lunches += 1
+            lunch_dishes = menu.lunch.split('#') if menu.lunch else []
+        else:
+            lunch_dishes = []
+
+        for dish_id in lunch_dishes:
+            result = db.execute(
+                update(models.Dish)
+                .where(models.Dish.id == int(dish_id))
+                .where(models.Dish.amount > 0)
+                .values(amount=models.Dish.amount - 1)
+            )
+            
+            if result.rowcount == 0:
+                dish_exists = db.query(models.Dish).filter(models.Dish.id == int(dish_id)).first()
+                if not dish_exists:
+                     raise HTTPException(status_code=500, detail=f"Блюдо {dish_id} не найдено")
+                raise HTTPException(status_code=400, detail="Невозможно укомплектовать обед: закончились продукты")
+
+        current_user.balance -= LUNCH_PRICE
+        
+        payment = models.Payment(
             user_id=current_user.id,
-            date=meal_delivery_date,
-            breakfast=None,
-            lunch="completed"
+            amount=LUNCH_PRICE,
+            type="lunch",
+            purchase_date=today,
+            delivery_date=meal_delivery_date
         )
-        db.add(meal_record)
-    else:
-        meal_record.lunch = "completed"
-    
-    meal_history = models.MealHistory(
-        user_id=current_user.id,
-        meal_type="lunch",
-        date=meal_delivery_date,
-        source="purchased",
-        dishes="#".join(str(d) for d in lunch_dishes)
-    )
-    db.add(meal_history)
-    
-    db.commit()
-    db.refresh(current_user)
-    
-    return {
-        "user": current_user,
-        "meal_type": "lunch",
-        "lunch_dishes": lunch_dishes
-    }
+        db.add(payment)
+        
+        meal_record = db.query(models.MealRecord).filter(
+            models.MealRecord.user_id == current_user.id,
+            models.MealRecord.date == meal_delivery_date
+        ).with_for_update().first()
+        
+        if not meal_record:
+            meal_record = models.MealRecord(
+                user_id=current_user.id,
+                date=meal_delivery_date,
+                breakfast=None,
+                lunch="completed"
+            )
+            db.add(meal_record)
+        else:
+            meal_record.lunch = "completed"
+        
+        meal_history = models.MealHistory(
+            user_id=current_user.id,
+            meal_type="lunch",
+            date=meal_delivery_date,
+            source="purchased",
+            dishes="#".join(str(d) for d in lunch_dishes)
+        )
+        db.add(meal_history)
+        
+        db.commit()
+        db.refresh(current_user)
+        
+        return {
+            "user": current_user,
+            "meal_type": "lunch",
+            "lunch_dishes": lunch_dishes
+        }
+    except Exception as e:
+        db.rollback()
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/subscription/buy", response_model=schemas.Subscription)
 def buy_subscription(
@@ -271,61 +344,84 @@ def get_breakfast_with_subscription(
         raise HTTPException(status_code=400, detail="Абонемент не активен")
     
     today = date.today()
-    
-    meal_record = db.query(models.MealRecord).filter(
-        models.MealRecord.user_id == current_user.id,
-        models.MealRecord.date == today
-    ).first()
-    
-    if meal_record:
-        if meal_record.breakfast and meal_record.breakfast in ["pending", "completed"]:
-            raise HTTPException(status_code=400, detail="Завтрак уже получен на сегодня")
-        meal_record.breakfast = "completed"
-    else:
-        meal_record = models.MealRecord(
+
+    try:
+        menu = db.query(models.Menu).filter(models.Menu.date == today).first()
+        if menu:
+            menu.given_breakfasts += 1
+            breakfast_dishes = menu.breakfast.split('#') if menu.breakfast else []
+        else:
+            breakfast_dishes = []
+
+        # Atomic Stock Update
+        for dish_id in breakfast_dishes:
+            result = db.execute(
+                update(models.Dish)
+                .where(models.Dish.id == int(dish_id))
+                .where(models.Dish.amount > 0)
+                .values(amount=models.Dish.amount - 1)
+            )
+            if result.rowcount == 0:
+                 dish_exists = db.query(models.Dish).filter(models.Dish.id == int(dish_id)).first()
+                 if not dish_exists:
+                      raise HTTPException(status_code=500, detail=f"Блюдо {dish_id} не найдено")
+                 raise HTTPException(status_code=400, detail="Невозможно укомплектовать завтрак: закончились продукты")
+
+        
+        meal_record = db.query(models.MealRecord).filter(
+            models.MealRecord.user_id == current_user.id,
+            models.MealRecord.date == today
+        ).with_for_update().first()
+        
+        if meal_record:
+            if meal_record.breakfast and meal_record.breakfast in ["pending", "completed"]:
+                raise HTTPException(status_code=400, detail="Завтрак уже получен на сегодня")
+            meal_record.breakfast = "completed"
+        else:
+            meal_record = models.MealRecord(
+                user_id=current_user.id,
+                date=today,
+                breakfast="completed",
+                lunch=None
+            )
+            db.add(meal_record)
+        
+        dummy_payment = models.Payment(
             user_id=current_user.id,
-            date=today,
-            breakfast="completed",
-            lunch=None
+            amount=0,
+            type="breakfast",
+            purchase_date=today,
+            delivery_date=today
         )
-        db.add(meal_record)
-    
-    menu = db.query(models.Menu).filter(models.Menu.date == today).first()
-    if menu:
-        menu.given_breakfasts += 1
-    
-    dummy_payment = models.Payment(
-        user_id=current_user.id,
-        amount=0,
-        type="breakfast",
-        purchase_date=today,
-        delivery_date=today
-    )
-    db.add(dummy_payment)
-    
-    db.commit()
-    
-    if menu:
-        breakfast_dishes = menu.breakfast.split('#') if menu.breakfast else []
-    else:
-        breakfast_dishes = []
-    
-    meal_history = models.MealHistory(
-        user_id=current_user.id,
-        meal_type="breakfast",
-        date=today,
-        source="subscription",
-        dishes="#".join(str(d) for d in breakfast_dishes)
-    )
-    db.add(meal_history)
-    db.commit()
-    
-    return {
-        "message": "Завтрак получен, оставьте отзыв",
-        "date": today,
-        "meal_type": "breakfast",
-        "dishes": breakfast_dishes
-    }
+        db.add(dummy_payment)
+        
+        if menu:
+            breakfast_dishes = menu.breakfast.split('#') if menu.breakfast else []
+        else:
+            breakfast_dishes = []
+        
+        meal_history = models.MealHistory(
+            user_id=current_user.id,
+            meal_type="breakfast",
+            date=today,
+            source="subscription",
+            dishes="#".join(str(d) for d in breakfast_dishes)
+        )
+        db.add(meal_history)
+        
+        db.commit()
+        
+        return {
+            "message": "Завтрак получен, оставьте отзыв",
+            "date": today,
+            "meal_type": "breakfast",
+            "dishes": breakfast_dishes
+        }
+    except Exception as e:
+        db.rollback()
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/meal/lunch-with-subscription")
 def get_lunch_with_subscription(
@@ -343,61 +439,83 @@ def get_lunch_with_subscription(
         raise HTTPException(status_code=400, detail="Абонемент не активен")
     
     today = date.today()
-    
-    meal_record = db.query(models.MealRecord).filter(
-        models.MealRecord.user_id == current_user.id,
-        models.MealRecord.date == today
-    ).first()
-    
-    if meal_record:
-        if meal_record.lunch and meal_record.lunch in ["pending", "completed"]:
-            raise HTTPException(status_code=400, detail="Обед уже получен на сегодня")
-        meal_record.lunch = "completed"
-    else:
-        meal_record = models.MealRecord(
+
+    try:
+        menu = db.query(models.Menu).filter(models.Menu.date == today).first()
+        if menu:
+            menu.given_lunches += 1
+            lunch_dishes = menu.lunch.split('#') if menu.lunch else []
+        else:
+            lunch_dishes = []
+
+        # Atomic Stock Update
+        for dish_id in lunch_dishes:
+            result = db.execute(
+                update(models.Dish)
+                .where(models.Dish.id == int(dish_id))
+                .where(models.Dish.amount > 0)
+                .values(amount=models.Dish.amount - 1)
+            )
+            if result.rowcount == 0:
+                 dish_exists = db.query(models.Dish).filter(models.Dish.id == int(dish_id)).first()
+                 if not dish_exists:
+                      raise HTTPException(status_code=500, detail=f"Блюдо {dish_id} не найдено")
+                 raise HTTPException(status_code=400, detail="Невозможно укомплектовать обед: закончились продукты")
+        
+        meal_record = db.query(models.MealRecord).filter(
+            models.MealRecord.user_id == current_user.id,
+            models.MealRecord.date == today
+        ).with_for_update().first()
+        
+        if meal_record:
+            if meal_record.lunch and meal_record.lunch in ["pending", "completed"]:
+                raise HTTPException(status_code=400, detail="Обед уже получен на сегодня")
+            meal_record.lunch = "completed"
+        else:
+            meal_record = models.MealRecord(
+                user_id=current_user.id,
+                date=today,
+                breakfast=None,
+                lunch="completed"
+            )
+            db.add(meal_record)
+        
+        dummy_payment = models.Payment(
             user_id=current_user.id,
-            date=today,
-            breakfast=None,
-            lunch="completed"
+            amount=0,
+            type="lunch",
+            purchase_date=today,
+            delivery_date=today
         )
-        db.add(meal_record)
-    
-    menu = db.query(models.Menu).filter(models.Menu.date == today).first()
-    if menu:
-        menu.given_lunches += 1
-    
-    dummy_payment = models.Payment(
-        user_id=current_user.id,
-        amount=0,
-        type="lunch",
-        purchase_date=today,
-        delivery_date=today
-    )
-    db.add(dummy_payment)
-    
-    db.commit()
-    
-    if menu:
-        lunch_dishes = menu.lunch.split('#') if menu.lunch else []
-    else:
-        lunch_dishes = []
-    
-    meal_history = models.MealHistory(
-        user_id=current_user.id,
-        meal_type="lunch",
-        date=date.today(),
-        source="subscription",
-        dishes="#".join(str(d) for d in lunch_dishes)
-    )
-    db.add(meal_history)
-    db.commit()
-    
-    return {
-        "message": "Обед получен, оставьте отзыв",
-        "date": date.today(),
-        "meal_type": "lunch",
-        "dishes": lunch_dishes
-    }
+        db.add(dummy_payment)
+        
+        if menu:
+            lunch_dishes = menu.lunch.split('#') if menu.lunch else []
+        else:
+            lunch_dishes = []
+        
+        meal_history = models.MealHistory(
+            user_id=current_user.id,
+            meal_type="lunch",
+            date=date.today(),
+            source="subscription",
+            dishes="#".join(str(d) for d in lunch_dishes)
+        )
+        db.add(meal_history)
+        
+        db.commit()
+        
+        return {
+            "message": "Обед получен, оставьте отзыв",
+            "date": date.today(),
+            "meal_type": "lunch",
+            "dishes": lunch_dishes
+        }
+    except Exception as e:
+        db.rollback()
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/balance/up")
 def up_balance(

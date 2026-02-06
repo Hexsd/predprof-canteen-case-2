@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useNotification } from '../../hooks/useNotification'
+import logger from '../../utils/logger'
 
 export default function ReviewHistoryPage() {
   const location = useLocation()
@@ -29,22 +30,22 @@ export default function ReviewHistoryPage() {
       try {
         setDishIds(dishes)
         const dishDetailsMap = {}
-        
+
 
         const response = await axios.get(`/api/index/dishes`)
         const allDishes = response.data
-        
+
         for (const dishId of dishes) {
           const dish = allDishes.find(d => d.id === parseInt(dishId))
           if (dish) {
             dishDetailsMap[dishId] = dish.name
           }
         }
-        
+
         setDishNames(dishDetailsMap)
         setLoading(false)
       } catch (error) {
-        console.error('Error fetching dishes:', error)
+        logger.error('Error fetching dishes:', error)
         notify('Ошибка загрузки блюд', 'error')
         setLoading(false)
       }
@@ -99,8 +100,8 @@ export default function ReviewHistoryPage() {
             })
             successCount.count++
           } catch (dishError) {
-            if (dishError.response?.status === 400 && 
-                dishError.response?.data?.detail?.includes('уже оставили отзыв')) {
+            if (dishError.response?.status === 400 &&
+              dishError.response?.data?.detail?.includes('уже оставили отзыв')) {
               failedDishes.push(dishNames[dishId])
             } else {
               throw dishError
@@ -149,7 +150,7 @@ export default function ReviewHistoryPage() {
           {dishIds.map((dishId) => (
             <div key={dishId} className="review-item">
               <h3>{dishNames[dishId] || `Блюдо #${dishId}`}</h3>
-              
+
               <div className="rating-input">
                 <label>Оценка:</label>
                 <div className="rating-stars">
@@ -161,7 +162,7 @@ export default function ReviewHistoryPage() {
                       onClick={() => handleRatingChange(dishId, star)}
                       title={`${star} звезд`}
                     >
-                      ⭐
+                      <i className="fa-solid fa-star"></i>
                     </button>
                   ))}
                 </div>

@@ -12,6 +12,7 @@ import {
   Filler
 } from 'chart.js';
 import axios from 'axios';
+import logger from '../utils/logger'
 
 ChartJS.register(
   CategoryScale,
@@ -90,10 +91,10 @@ export default function MonthlyChart() {
       };
       
       ws.onerror = (error) => {
-        console.error('Chart WebSocket error:', error);
+        logger.error('Chart WebSocket error:', error);
       };
     } catch (err) {
-      console.error('Failed to connect WebSocket for chart:', err);
+      logger.error('Failed to connect WebSocket for chart:', err);
     }
     
     return () => {

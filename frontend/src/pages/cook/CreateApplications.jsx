@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNotification } from '../../hooks/useNotification'
+import logger from '../../utils/logger'
 
 export default function CreateApplications() {
     const applictaiontemplate = {
@@ -24,7 +25,7 @@ export default function CreateApplications() {
             const response = await axios.get('/api/cook/all');
             setProducts(response.data[1]);
         } catch (error) {
-            console.error('Error fetching products:', error);
+            logger.error('Error fetching products:', error);
         }
     };
 
@@ -33,7 +34,7 @@ export default function CreateApplications() {
             const response = await axios.get('/api/cook/my_apps');
             setMyApplications(response.data);
         } catch (error) {
-            console.error('Error fetching applications:', error);
+            logger.error('Error fetching applications:', error);
         }
     };
 
@@ -57,7 +58,6 @@ export default function CreateApplications() {
                 elem = element
             }
         });
-        //console.log(elem);
         return elem
     }
 

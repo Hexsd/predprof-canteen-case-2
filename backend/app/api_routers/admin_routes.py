@@ -11,6 +11,9 @@ import csv
 import io
 from calendar import monthrange
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ConnectionManager:
     def __init__(self):
@@ -230,11 +233,11 @@ def get_all_applications(
     current_user: models.User = Depends(auth.get_admin),
 ):
     applications = db.query(models.Application).all()
-    print(applications)
+    logger.debug("Fetched applications count: %s", len(applications))
     if not applications:
         raise HTTPException(
             status_code=404,
-            detail="allah akbar"
+            detail="No applications found"
         )
     return applications
 
@@ -409,6 +412,59 @@ def export_stats(
     )
 
 
+
+from fastapi.concurrency import run_in_threadpool
+
+def get_stats_sync(db: Session, today: date):
+    revenue_payments = db.query(models.Payment).filter(
+        models.Payment.delivery_date == today,
+        models.Payment.type.in_(["breakfast", "lunch", "subscription"]),
+        models.Payment.amount > 0
+    ).all()
+    
+    meal_payments = db.query(models.Payment).filter(
+        models.Payment.delivery_date == today,
+        models.Payment.type.in_(["breakfast", "lunch"])
+    ).all()
+    
+    approved_applications = db.query(models.Application).filter(
+        models.Application.date == today,
+        models.Application.status == "Одобрена"
+    ).all()
+    
+    menu = db.query(models.Menu).filter(models.Menu.date == today).first()
+    
+    total_revenue = sum(p.amount for p in revenue_payments) if revenue_payments else 0
+    attendance = len(set(p.user_id for p in meal_payments)) if meal_payments else 0
+    total_payments = len([p for p in meal_payments if p.amount > 0])
+    
+    total_expenses = 0
+    for app in approved_applications:
+        prices = app.price_of_products.split('#') if app.price_of_products else []
+        amounts = app.amount_of_products.split('#') if app.amount_of_products else []
+        for i, price in enumerate(prices):
+            try:
+                if i < len(amounts):
+                    total_expenses += float(price) * int(amounts[i])
+            except (ValueError, IndexError):
+                pass
+    
+    total_profit = total_revenue - total_expenses
+    
+    given_breakfasts = menu.given_breakfasts if menu else 0
+    given_lunches = menu.given_lunches if menu else 0
+    
+    return {
+        "totalPayments": total_payments,
+        "totalRevenue": total_revenue,
+        "totalExpenses": total_expenses,
+        "totalProfit": total_profit,
+        "attendance": attendance,
+        "givenBreakfasts": given_breakfasts,
+        "givenLunches": given_lunches,
+        "timestamp": datetime.now().isoformat()
+    }
+
 @router.websocket("/ws/stats")
 async def websocket_stats(websocket: WebSocket, db: Session = Depends(get_db)):
     try:
@@ -418,56 +474,8 @@ async def websocket_stats(websocket: WebSocket, db: Session = Depends(get_db)):
         
         while True:
             today = date.today()
-            dateStr = today.isoformat()
             
-            revenue_payments = db.query(models.Payment).filter(
-                models.Payment.delivery_date == today,
-                models.Payment.type.in_(["breakfast", "lunch", "subscription"]),
-                models.Payment.amount > 0
-            ).all()
-            
-            meal_payments = db.query(models.Payment).filter(
-                models.Payment.delivery_date == today,
-                models.Payment.type.in_(["breakfast", "lunch"])
-            ).all()
-            
-            approved_applications = db.query(models.Application).filter(
-                models.Application.date == today,
-                models.Application.status == "Одобрена"
-            ).all()
-            
-            menu = db.query(models.Menu).filter(models.Menu.date == today).first()
-            
-            total_revenue = sum(p.amount for p in revenue_payments) if revenue_payments else 0
-            attendance = len(set(p.user_id for p in meal_payments)) if meal_payments else 0
-            total_payments = len([p for p in meal_payments if p.amount > 0])
-            
-            total_expenses = 0
-            for app in approved_applications:
-                prices = app.price_of_products.split('#') if app.price_of_products else []
-                amounts = app.amount_of_products.split('#') if app.amount_of_products else []
-                for i, price in enumerate(prices):
-                    try:
-                        if i < len(amounts):
-                            total_expenses += float(price) * int(amounts[i])
-                    except (ValueError, IndexError):
-                        pass
-            
-            total_profit = total_revenue - total_expenses
-            
-            given_breakfasts = menu.given_breakfasts if menu else 0
-            given_lunches = menu.given_lunches if menu else 0
-            
-            stats_data = {
-                "totalPayments": total_payments,
-                "totalRevenue": total_revenue,
-                "totalExpenses": total_expenses,
-                "totalProfit": total_profit,
-                "attendance": attendance,
-                "givenBreakfasts": given_breakfasts,
-                "givenLunches": given_lunches,
-                "timestamp": datetime.now().isoformat()
-            }
+            stats_data = await run_in_threadpool(get_stats_sync, db, today)
             
             await websocket.send_json(stats_data)
             
@@ -476,7 +484,7 @@ async def websocket_stats(websocket: WebSocket, db: Session = Depends(get_db)):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:
-        print(f"WebSocket error: {e}")
+        logger.exception("WebSocket error: %s", e)
         manager.disconnect(websocket)
 
 

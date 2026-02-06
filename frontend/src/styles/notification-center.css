@@ -1,0 +1,83 @@
+.notification-center {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-item {
+  position: relative;
+  padding: 18px 20px 14px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+  font-size: 16px;
+  max-width: 440px;
+  word-wrap: break-word;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  animation: nc-slide-in 360ms cubic-bezier(.2,.9,.3,1);
+}
+
+.notification-item .nc-content {
+  flex: 1 1 auto;
+}
+
+.notification-item .nc-close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 6px;
+  margin-left: 6px;
+  opacity: 0.8;
+}
+
+.notification-item .nc-close:hover { opacity: 1; }
+
+.notification-item .nc-progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 6px;
+  background: rgba(0,0,0,0.04);
+  width: 100%;
+}
+
+.notification-item .nc-progress > i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  transform: scaleX(1);
+  will-change: transform;
+  animation: nc-progress var(--duration, 5000ms) linear forwards;
+  background: var(--progress-color, linear-gradient(90deg, rgba(255,255,255,0.3), rgba(255,255,255,0.05)));
+}
+
+.notification-item.success { background-color: #e6f9ef; color: #1b6b37; border: 1px solid #c6efd2; --progress-color: #28a745; }
+.notification-item.error { background-color: #fdecea; color: #7a1b1b; border: 1px solid #f5c6c6; --progress-color: #d9534f; }
+.notification-item.info { background-color: #eaf7ff; color: #0b5260; border: 1px solid #cfeffb; --progress-color: #2196f3; }
+.notification-item.warning { background-color: #fff7e6; color: #7a5a10; border: 1px solid #ffe9b5; --progress-color: #ff9800; }
+
+@keyframes nc-slide-in {
+  from { transform: translateX(26px) scale(.99); opacity: 0; }
+  to { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+@keyframes nc-progress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+/* responsive */
+@media (max-width: 520px) {
+  .notification-center { right: 12px; left: 12px; bottom: 18px; }
+  .notification-item { max-width: calc(100% - 24px); }
+}
