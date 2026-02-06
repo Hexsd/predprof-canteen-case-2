@@ -16,7 +16,7 @@ export default function ReviewsViewModal({ dishId, dishName, onClose }) {
           axios.get(`/api/reviews/dish/${dishId}`),
           axios.get(`/api/reviews/stats/${dishId}`)
         ])
-        
+
         setReviews(reviewsRes.data)
         setStats(statsRes.data)
         setLoading(false)
@@ -31,7 +31,15 @@ export default function ReviewsViewModal({ dishId, dishName, onClose }) {
   }, [dishId, notify])
 
   const renderStars = (rating) => {
-    return '⭐'.repeat(rating) + '☆'.repeat(5 - rating)
+    const stars = []
+    for (let i = 0; i < 5; i++) {
+      if (i < rating) {
+        stars.push(<i key={i} className="fa-solid fa-star"></i>)
+      } else {
+        stars.push(<i key={i} className="fa-regular fa-star"></i>)
+      }
+    }
+    return stars
   }
 
   return (

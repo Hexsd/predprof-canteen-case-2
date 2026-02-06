@@ -12,7 +12,7 @@ export default function ManageApplications() {
     const [showDenied, setShowDenied] = useState(true);
     const [showAllowed, setShowAllowed] = useState(true);
     const [users, setUsers] = useState([]);
-    
+
 
     const { notify } = useNotification();
 
@@ -25,7 +25,7 @@ export default function ManageApplications() {
         } catch (error) {
             logger.error('Error fetching products and dishes:', error);
         }
-    }   
+    }
 
     const fetchApps = async () => {
         try {
@@ -44,9 +44,9 @@ export default function ManageApplications() {
         } catch (error) {
             logger.error('Error fetching users:', error);
             logger.error(error.response?.data?.detail || 'Ошибка загрузки пользователей');
-        } 
+        }
     }
-    
+
     useEffect(() => {
         fetchAll();
         fetchApps();
@@ -80,51 +80,32 @@ export default function ManageApplications() {
         });
         return elem;
     }
-    
+
     return (
         <div className="cook-container">
             <form onSubmit={confirmApps}>
                 <button type="submit" className="add-dish-btn">
                     Подтвердить изменения
                 </button>
-                
-                <div className="week-selector">
-                    <div className="form-group">
-                        {/* <label className="form-label">
-                            <input
-                                type="checkbox"
-                                checked={showDenied}
-                                onChange={(e) => setShowDenied(e.target.checked)}
-                            />
-                            Показывать отклонённые
-                        </label> */}
-                        <label className="alergen-checkbox">
-                            <input
+
+                <div className="admin-filters">
+                    <label className="admin-checkbox-styled">
+                        <input
                             type="checkbox"
                             checked={showDenied}
                             onChange={(e) => setShowDenied(e.target.checked)}
-                            />
-                            <span className="checkbox-label">Показывать отклонённые</span>
-                        </label>
-                    </div>
-                    <div className="form-group">
-                            {/* <label className="form-label">
-                                <input
-                                    type="checkbox"
-                                    checked={showAllowed}
-                                    onChange={(e) => setShowAllowed(e.target.checked)}
-                                />
-                                Показывать одобренные
-                            </label> */}
-                            <label className="alergen-checkbox">
-                                <input
-                                type="checkbox"
-                                checked={showAllowed}
-                                onChange={(e) => setShowAllowed(e.target.checked)}
-                                />
-                                <span className="checkbox-label">Показывать одобренные</span>
-                            </label>
-                    </div>
+                        />
+                        <span className="checkbox-label">Показывать отклонённые</span>
+                    </label>
+
+                    <label className="admin-checkbox-styled">
+                        <input
+                            type="checkbox"
+                            checked={showAllowed}
+                            onChange={(e) => setShowAllowed(e.target.checked)}
+                        />
+                        <span className="checkbox-label">Показывать одобренные</span>
+                    </label>
                 </div>
 
                 <table className="cook-table">
@@ -140,14 +121,14 @@ export default function ManageApplications() {
                     <tbody>
                         {applications.map((app, index) => {
                             let summary = 0;
-                            
+
                             if (app.status === "Одобрена" && !showAllowed) return null;
                             if (app.status === "Отклонена" && !showDenied) return null;
 
                             let status_color = getStatusColor(app.status);
-                            
+
                             const user = findposition(parseInt(app.user_id), users);
-                            
+
                             return (
                                 <tr key={app.id || index}>
                                     <td>{app.date}</td>
@@ -167,9 +148,9 @@ export default function ManageApplications() {
                                     </td>
                                     <td>{summary} ₽</td>
                                     <td>
-                                        {prevApplications[index].status=="Одобрена" ? (
-                                            <span 
-                                                style={{ 
+                                        {prevApplications[index].status == "Одобрена" ? (
+                                            <span
+                                                style={{
                                                     color: status_color,
                                                     fontWeight: '600',
                                                     display: 'inline-block',
@@ -180,11 +161,11 @@ export default function ManageApplications() {
                                             >
                                                 Одобрена
                                             </span>
-                                        ) : (<select 
-                                            value={app.status} 
+                                        ) : (<select
+                                            value={app.status}
                                             onChange={(e) => {
                                                 const newApplications = [...applications];
-                                                newApplications[index] = {...app, status: e.target.value};
+                                                newApplications[index] = { ...app, status: e.target.value };
                                                 setApplications(newApplications);
                                             }}
                                             className="form-input"
@@ -192,7 +173,7 @@ export default function ManageApplications() {
                                             <option value="На рассмотрении">На рассмотрении</option>
                                             <option value="Одобрена">Одобрена</option>
                                             <option value="Отклонена">Отклонена</option>
-                                        </select>)}     
+                                        </select>)}
                                     </td>
                                 </tr>
                             );

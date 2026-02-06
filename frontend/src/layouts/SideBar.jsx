@@ -8,42 +8,42 @@ export default function SideBar({ isOpen = true, onToggle }) {
   const isActive = (path) => location.pathname === path ? 'active' : ''
   const isAdmin = currentUser?.role === 'admin'
   const isCook = currentUser?.role === 'cook'
-  
+
   const navItems = [
-    { path: '/', label: 'Главная', icon: '◉' },
+    { path: '/', label: 'Главная', icon: <i className="fa-solid fa-house"></i> },
     ...(isAdmin ? [
-      { path: '/admin/stats', label: 'Статистика', icon: '⇄' },
-      { path: '/admin/users', label: 'Пользователи', icon: '▤' },
-      { path: '/admin/applications', label: 'Заявки на закупку', icon: '☐' }
+      { path: '/admin/stats', label: 'Статистика', icon: <i className="fa-solid fa-chart-line"></i> },
+      { path: '/admin/users', label: 'Пользователи', icon: <i className="fa-solid fa-users"></i> },
+      { path: '/admin/applications', label: 'Заявки на закупку', icon: <i className="fa-solid fa-inbox"></i> }
     ] : []),
     ...(isCook ? [
-      { path: '/cook/products', label: 'Контроль продуктов', icon: '◆' },
-      { path: '/cook/menu', label: 'Управление меню', icon: '☰' },
-      { path: '/cook/applications', label: 'Заявки на закупку', icon: '⇶' }
+      { path: '/cook/products', label: 'Контроль продуктов', icon: <i className="fa-solid fa-utensils"></i> },
+      { path: '/cook/menu', label: 'Управление меню', icon: <i className="fa-solid fa-utensils"></i> },
+      { path: '/cook/applications', label: 'Заявки на закупку', icon: <i className="fa-solid fa-inbox"></i> }
     ] : [])
   ]
-  
+
   return (
     <aside className={`sidebar ${!isOpen ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
         {isOpen ? (
           <>
             <h2>Навигация</h2>
-            <button 
+            <button
               onClick={onToggle}
               className="sidebar-toggle-btn"
               title="Свернуть"
             >
-              ◀
+              <i className="fa-solid fa-chevron-left"></i>
             </button>
           </>
         ) : (
-          <button 
+          <button
             onClick={onToggle}
             className="sidebar-toggle-btn collapsed-toggle"
             title="Развернуть"
           >
-            ▶
+            <i className="fa-solid fa-chevron-right"></i>
           </button>
         )}
       </div>

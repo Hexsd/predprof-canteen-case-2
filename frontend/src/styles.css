@@ -8,7 +8,7 @@
   --color-error: #e53e3e;
   --color-error-dark: #c53030;
   --color-unsure: #e54f3e;
-  
+
   --color-text-primary: #1c1b27;
   --color-text-secondary: #666;
   --color-text-tertiary: #999;
@@ -16,16 +16,16 @@
   --color-bg-card: #1e1e1e;
   --color-bg-light: #f8fafb;
   --color-bg-white: #ffffff;
-  
+
   --color-border: #585858;
   --color-border-light: #e2e8f0;
   --color-border-subtle: #f0f0f0;
-  
+
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.3);
   --shadow-focus: 0 0 0 3px rgba(51, 146, 133, 0.1);
-  
+
   --spacing-xs: 5px;
   --spacing-sm: 8px;
   --spacing-md: 12px;
@@ -33,7 +33,7 @@
   --spacing-xl: 20px;
   --spacing-2xl: 30px;
   --spacing-3xl: 40px;
-  
+
   --font-size-sm: 14px;
   --font-size-base: 15px;
   --font-size-lg: 16px;
@@ -239,29 +239,91 @@ a {
   gap: var(--spacing-xl);
 }
 
-.user-greeting {
-  font-size: var(--font-size-sm);
-  color: var(--color-secondary);
+/* Header User Profile */
+.user-profile-container {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.user-greeting:hover {
-  text-decoration: underline;
-  color: var(--color-bg-light);
-}
-
-.logout-btn {
-  background-color: var(--color-error);
+.user-avatar-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
   color: white;
-  border: none;
-  padding: var(--spacing-sm) var(--spacing-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
   cursor: pointer;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  transition: opacity 0.2s;
+  border: none;
+  transition: background-color 0.2s;
 }
 
-.logout-btn:hover {
-  opacity: 0.8;
+.user-avatar-btn:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.profile-dropdown-menu {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background-color: var(--color-bg-white);
+  min-width: 200px;
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-md) 0;
+  z-index: 100;
+  border: 1px solid var(--color-border-light);
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown-user-info {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: var(--spacing-sm);
+}
+
+.dropdown-user-name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+}
+
+.dropdown-user-email {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+
+.dropdown-item {
+  padding: var(--spacing-md) var(--spacing-lg);
+  color: var(--color-text-primary);
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: var(--color-bg-light);
+  color: var(--color-primary);
+}
+
+.dropdown-item.logout {
+  color: var(--color-error);
+}
+
+.dropdown-item.logout:hover {
+  background-color: #fff5f5;
 }
 
 .content {
@@ -346,9 +408,11 @@ input[type="text"]:focus {
   border-color: var(--color-primary);
   box-shadow: var(--shadow-focus);
 }
+
 .react-datepicker__current-month {
   margin-bottom: 20px;
 }
+
 .form-button {
   padding: var(--spacing-lg);
   background: var(--color-primary);
@@ -658,8 +722,15 @@ input[type="text"]:focus {
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .stat-card {
@@ -1306,7 +1377,7 @@ input[type="text"]:focus {
   opacity: 0.6;
 }
 
-.balance-up{
+.balance-up {
   text-align: left;
   font-size: var(--font-size-lg);
   color: var(--color-text-primary);
@@ -1318,8 +1389,7 @@ input[type="text"]:focus {
 }
 
 .btn-balance-up {
-  margin-top: var(--spacing-lg);
-  margin-left: var(--spacing-md);
+  margin: 0;
   padding: var(--spacing-md) var(--spacing-xl);
   background-color: var(--color-primary);
   color: white;
@@ -1328,6 +1398,17 @@ input[type="text"]:focus {
   font-size: var(--font-size-sm);
   font-weight: 600;
   transition: background-color 0.2s;
+}
+
+.btn-balance-up:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+}
+
+.btn-balance-up:disabled {
+  background-color: var(--color-border);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* profile page */
@@ -1467,11 +1548,6 @@ input[type="text"]:focus {
   box-shadow: var(--shadow-focus);
 }
 
-.btn-balance-up {
-  margin: 0;
-  padding: var(--spacing-md) var(--spacing-xl);
-}
-
 .subscription-section.subscription-section--card {
   background: var(--color-bg-white);
   padding: var(--spacing-xl);
@@ -1527,6 +1603,7 @@ input[type="text"]:focus {
 .react-datepicker__input-container input {
   width: 100%;
 }
+
 /* Review Page Styles */
 .review-page {
   display: flex;
@@ -2081,8 +2158,6 @@ input[type="text"]:focus {
 
 .save-alergens-btn:hover:not(:disabled) {
   background-color: var(--color-primary-dark);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
 }
 
 .save-alergens-btn:disabled {
@@ -2091,6 +2166,7 @@ input[type="text"]:focus {
   cursor: not-allowed;
   opacity: 0.6;
 }
+
 /* Export Section */
 .export-section {
   background: var(--color-bg-light);
@@ -2345,4 +2421,66 @@ input[type="text"]:focus {
 .save-preferences-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.cooked-meals-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-light);
+}
+
+.cooked-meals-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+  margin: 0;
+}
+
+.cooked-meals-toggle input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.fa-star {
+  color: var(--color-accent);
+}
+
+.admin-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  max-width: 300px;
+}
+
+.admin-checkbox-styled {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-light);
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.2s;
+}
+
+.admin-checkbox-styled:hover {
+  opacity: 0.8;
+}
+
+.admin-checkbox-styled input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+  margin: 0;
+}
+
+.checkbox-label {
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  font-weight: 500;
 }

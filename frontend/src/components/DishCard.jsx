@@ -36,7 +36,7 @@ export default function DishCard({ dish, products = [] }) {
     if (user?.alergens && dish.products && products.length > 0) {
       const userAlergens = user.alergens.split('#').filter(id => id !== '')
       const dishProductIds = dish.products.split('#').filter(id => id !== '')
-      
+
       const dishHasAllergen = dishProductIds.some(productId => {
         const product = products.find(p => p.id === parseInt(productId))
         if (product && product.alergens) {
@@ -45,7 +45,7 @@ export default function DishCard({ dish, products = [] }) {
         }
         return false
       })
-      
+
       setHasAllergen(dishHasAllergen)
     }
   }, [user, dish, products])
@@ -61,7 +61,7 @@ export default function DishCard({ dish, products = [] }) {
           setIsInPreferences(false)
         }
       }
-      
+
       checkPreference()
     }
   }, [user, dish.id])
@@ -69,9 +69,13 @@ export default function DishCard({ dish, products = [] }) {
   const renderStars = (rating) => {
     const filledStars = Math.floor(rating)
     const hasHalfStar = rating % 1 !== 0
-    let stars = '⭐'.repeat(filledStars)
+    const stars = []
+
+    for (let i = 0; i < filledStars; i++) {
+      stars.push(<i key={`full-${i}`} className="fa-solid fa-star"></i>)
+    }
     if (hasHalfStar) {
-      stars += '⭐'
+      stars.push(<i key="half" className="fa-solid fa-star-half-stroke"></i>)
     }
     return stars
   }
@@ -101,7 +105,7 @@ export default function DishCard({ dish, products = [] }) {
 
         <div className="dish-info">
           <h4 className="dish-name">{dish.name}</h4>
-          
+
           <div className="dish-footer">
             <div className="dish-rating">
               <div className="stars">

@@ -175,9 +175,9 @@ export default function UserLayout() {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('ru-RU', { 
-      year: 'numeric', 
-      month: 'long', 
+    return date.toLocaleDateString('ru-RU', {
+      year: 'numeric',
+      month: 'long',
       day: 'numeric'
     })
   }
@@ -323,7 +323,7 @@ export default function UserLayout() {
           <p className="alergens-description">
             Отметьте аллергены, чтобы при просмотре меню видеть предупреждение о блюдах, содержащих опасные для вас ингредиенты.
           </p>
-          
+
           <div className="alergens-grid">
             {alergens.map(alergen => (
               <label key={alergen.id} className="alergen-checkbox">
@@ -352,10 +352,10 @@ export default function UserLayout() {
         <div className="preferences-section">
           <h3>Мои предпочтения</h3>
           <p className="preferences-description">
-            Установите минимальную оценку, с какой блюдо будет добавляться в ваши избранные. 
+            Установите минимальную оценку, с какой блюдо будет добавляться в ваши избранные.
             При оставлении отзыва с оценкой выше или равной выбранному значению, блюдо будет помечено как избранное.
           </p>
-          
+
           <div className="preference-threshold-control">
             <label htmlFor="preference-threshold" className="threshold-label">
               Минимальная оценка для избранного:
@@ -373,7 +373,9 @@ export default function UserLayout() {
               />
               <div className="threshold-value">
                 <span className="stars-display">
-                  {'⭐'.repeat(preferenceThreshold)}
+                  {Array.from({ length: preferenceThreshold }).map((_, i) => (
+                    <i key={i} className="fa-solid fa-star"></i>
+                  ))}
                 </span>
                 <span className="threshold-number">{preferenceThreshold} звезд</span>
               </div>
