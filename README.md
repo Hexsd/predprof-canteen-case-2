@@ -14,3 +14,4 @@ mkdir -p /home/docker'''
 <img width="350" height="61" alt="image" src="https://github.com/user-attachments/assets/d8cb09a1-2b70-475e-b01d-195263ac0b59" /> 
 <h3>После используйте эту команду в корневой директории проекта:</h3>
 '''docker-compose up -d'''
+<h3>Сайт станет доступен по адресу http://localhost:8000</h3>
