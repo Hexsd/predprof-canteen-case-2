@@ -1,7 +1,10 @@
 # Автоматизировання информационная система школьного питания
 Ссылка на видеоролик в живом исполнении: https://vkvideo.ru/video-235863339_456239018?list=ln-EAM1ziQ5fxf6h4wN6O
+
 Rutube: https://rutube.ru/video/private/afc7e8fee5959ee641c5c88227fdb45d/?p=odGj8XJTx6uDYErwEjfYmQ
+
 Ссылка на видеоролик выполненный через запись экрана: https://vkvideo.ru/video-235863339_456239017?list=ln-ZLZKv0cdOPdlh8udvy
+
 Rutube: https://rutube.ru/video/private/6eec436da315f345562ada8dfdc091a5/?p=4IWNSOmugb_deYuwXmX5XA
 <h3>Веб-приложение развернуто на сервере и доступно по ссылке: https://hex-uslugi.ru</h3>
 
