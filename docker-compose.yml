@@ -23,13 +23,17 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
+    expose:
+      - "8000"
   frontend:
     build: ./frontend
     ports:
-      - "8000:80"
+      - "80:80"
+      - "443:443"
     depends_on:
       - backend
+    volumes:
+      - /opt/canteen/ssl:/etc/ssl:ro
 
 volumes:
   db_data:
