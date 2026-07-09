@@ -16,7 +16,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8001:8000"
+      - "8000"
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/appdb
       SECRET_KEY: "${SECRET_KEY}"
@@ -27,7 +27,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "8000:80"
+      - "127.0.0.1:8000:80"
     depends_on:
       - backend
 
