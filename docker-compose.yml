@@ -15,7 +15,7 @@ services:
 
   backend:
     build: ./backend
-    ports:
+    expose:
       - "8000"
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/appdb
